@@ -24,6 +24,7 @@ export async function onRequestPost(context) {
   if (data.comuna)             props['Comuna']               = rt(data.comuna);
   if (data.region)             props['Región']               = rt(data.region);
   if (data.m2)                 props['M²']                   = { number: Number(data.m2) };
+  if (data.m2_construidos)     props['M² construidos']       = { number: Number(data.m2_construidos) };
   if (data.habitaciones)       props['Habitaciones']         = { number: Number(data.habitaciones) };
   if (data.banos)              props['Baños']                = { number: Number(data.banos) };
   if (data.balcon)             props['Balcón']               = { select: { name: data.balcon === 'si' ? 'Sí' : 'No' } };

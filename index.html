@@ -155,11 +155,17 @@
           </div>
           <!-- Casa + Departamento -->
           <div class="form-grupo" id="campos-residencial" style="display:none">
-            <div class="form-fila form-fila-3">
+            <div class="form-fila form-fila-2">
               <div class="form-campo">
                 <label for="m2">M² totales</label>
-                <input type="number" id="m2" name="m2" placeholder="85" min="1" />
+                <input type="number" id="m2" name="m2" placeholder="120" min="1" />
               </div>
+              <div class="form-campo">
+                <label for="m2_construidos_res">M² construidos</label>
+                <input type="number" id="m2_construidos_res" name="m2_construidos" placeholder="85" min="1" />
+              </div>
+            </div>
+            <div class="form-fila form-fila-3">
               <div class="form-campo">
                 <label for="habitaciones">Habitaciones</label>
                 <input type="number" id="habitaciones" name="habitaciones" placeholder="3" min="0" />
@@ -167,16 +173,6 @@
               <div class="form-campo">
                 <label for="banos">Baños</label>
                 <input type="number" id="banos" name="banos" placeholder="2" min="0" />
-              </div>
-            </div>
-            <div class="form-fila form-fila-2">
-              <div class="form-campo">
-                <label for="balcon">Balcón</label>
-                <select id="balcon" name="balcon">
-                  <option value="" disabled selected>Selecciona</option>
-                  <option value="si">Sí</option>
-                  <option value="no">No</option>
-                </select>
               </div>
               <div class="form-campo">
                 <label for="orientacion">Orientación</label>
