@@ -205,6 +205,81 @@ h2 {
   background: #333;
 }
 
+/* Textos de bloque */
+.bloque-intro {
+  font-size: 0.9rem;
+  color: var(--gris-oscuro);
+  margin-bottom: 24px;
+}
+
+.bloque-texto {
+  font-size: 0.95rem;
+  color: var(--gris-oscuro);
+  line-height: 1.75;
+  margin-bottom: 14px;
+}
+
+.bloque-texto:last-child {
+  margin-bottom: 0;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--borde);
+}
+
+.timeline-paso {
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.timeline-paso:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-paso::before {
+  content: '';
+  position: absolute;
+  left: -28px;
+  top: 5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--negro);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--negro);
+}
+
+.timeline-titulo {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--negro);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.timeline-badge {
+  font-size: 0.78rem;
+  color: var(--gris-medio);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
 /* Formulario de propiedad */
 .form-propiedad {
   display: flex;
