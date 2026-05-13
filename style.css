@@ -138,6 +138,39 @@ h2 {
   color: var(--gris-medio);
 }
 
+/* Casas de remate */
+.casas-remate {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.casa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  background: var(--gris-claro);
+  border-radius: 4px;
+}
+
+.casa img {
+  height: 36px;
+  width: auto;
+  filter: grayscale(100%) contrast(120%);
+  opacity: 0.85;
+}
+
+.casa-tattersall img {
+  filter: grayscale(100%) invert(1) contrast(120%);
+  background: transparent;
+}
+
+.casa-tattersall {
+  background: #222;
+}
+
 /* Contacto */
 .contacto {
   border-top: 1px solid var(--borde);
