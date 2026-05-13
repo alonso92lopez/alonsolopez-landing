@@ -162,6 +162,10 @@ h2 {
   opacity: 0.85;
 }
 
+.casa-macal img {
+  height: 32px;
+}
+
 .casa-tattersall {
   background: #222;
 }
