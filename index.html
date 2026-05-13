@@ -79,9 +79,354 @@
     </section>
 
     <section class="contacto">
-      <h2>Conversemos</h2>
-      <p>Sin compromiso. Una llamada de 20 minutos es suficiente para saber si esto aplica para tu caso.</p>
-      <a class="boton" href="mailto:contacto@alonsolopez.cl">Escribir a contacto@alonsolopez.cl</a>
+      <h2>Cuéntame de tu propiedad</h2>
+      <p>Sin compromiso. Con esta información puedo evaluar si el proceso tiene sentido para tu caso.</p>
+
+      <form class="form-propiedad" id="formPropiedad">
+
+        <div class="form-seccion">
+          <span class="form-seccion-titulo">Datos de contacto</span>
+          <div class="form-fila">
+            <div class="form-campo">
+              <label for="nombre">Nombre completo</label>
+              <input type="text" id="nombre" name="nombre" placeholder="Juan Pérez" required />
+            </div>
+          </div>
+          <div class="form-fila form-fila-2">
+            <div class="form-campo">
+              <label for="telefono">Teléfono</label>
+              <input type="tel" id="telefono" name="telefono" placeholder="+56 9 XXXX XXXX" required />
+            </div>
+            <div class="form-campo">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="tu@correo.cl" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-seccion">
+          <span class="form-seccion-titulo">La propiedad</span>
+          <div class="form-fila form-fila-2">
+            <div class="form-campo">
+              <label for="tipo">Tipo de propiedad</label>
+              <select id="tipo" name="tipo" required>
+                <option value="" disabled selected>Selecciona</option>
+                <option value="casa">Casa</option>
+                <option value="departamento">Departamento</option>
+                <option value="oficina">Oficina</option>
+                <option value="local">Local comercial</option>
+                <option value="terreno">Terreno</option>
+                <option value="parcela">Parcela</option>
+                <option value="bodega">Bodega / Estacionamiento</option>
+              </select>
+            </div>
+            <div class="form-campo">
+              <label for="direccion">Dirección</label>
+              <input type="text" id="direccion" name="direccion" placeholder="Av. Ejemplo 123" required />
+            </div>
+          </div>
+          <div class="form-fila form-fila-2">
+            <div class="form-campo">
+              <label for="comuna">Comuna</label>
+              <input type="text" id="comuna" name="comuna" placeholder="Las Condes" required />
+            </div>
+            <div class="form-campo">
+              <label for="region">Región</label>
+              <select id="region" name="region" required>
+                <option value="" disabled selected>Selecciona</option>
+                <option value="rm">Región Metropolitana</option>
+                <option value="valparaiso">Valparaíso</option>
+                <option value="biobio">Biobío</option>
+                <option value="araucania">La Araucanía</option>
+                <option value="maule">Maule</option>
+                <option value="ohiggins">O'Higgins</option>
+                <option value="nuble">Ñuble</option>
+                <option value="los-lagos">Los Lagos</option>
+                <option value="los-rios">Los Ríos</option>
+                <option value="coquimbo">Coquimbo</option>
+                <option value="atacama">Atacama</option>
+                <option value="antofagasta">Antofagasta</option>
+                <option value="tarapaca">Tarapacá</option>
+                <option value="arica">Arica y Parinacota</option>
+                <option value="aysen">Aysén</option>
+                <option value="magallanes">Magallanes</option>
+              </select>
+            </div>
+          </div>
+          <!-- Casa + Departamento -->
+          <div class="form-grupo" id="campos-residencial" style="display:none">
+            <div class="form-fila form-fila-3">
+              <div class="form-campo">
+                <label for="m2">M² totales</label>
+                <input type="number" id="m2" name="m2" placeholder="85" min="1" />
+              </div>
+              <div class="form-campo">
+                <label for="habitaciones">Habitaciones</label>
+                <input type="number" id="habitaciones" name="habitaciones" placeholder="3" min="0" />
+              </div>
+              <div class="form-campo">
+                <label for="banos">Baños</label>
+                <input type="number" id="banos" name="banos" placeholder="2" min="0" />
+              </div>
+            </div>
+            <div class="form-fila form-fila-2">
+              <div class="form-campo">
+                <label for="balcon">Balcón</label>
+                <select id="balcon" name="balcon">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div class="form-campo">
+                <label for="orientacion">Orientación</label>
+                <select id="orientacion" name="orientacion">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="norte">Norte</option>
+                  <option value="sur">Sur</option>
+                  <option value="oriente">Oriente</option>
+                  <option value="poniente">Poniente</option>
+                  <option value="nororiente">Nororiente</option>
+                  <option value="norponiente">Norponiente</option>
+                  <option value="suroriente">Suroriente</option>
+                  <option value="surponiente">Surponiente</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Solo Departamento -->
+          <div class="form-grupo" id="campos-depto-extra" style="display:none">
+            <div class="form-fila form-fila-3">
+              <div class="form-campo">
+                <label for="piso">Piso</label>
+                <input type="number" id="piso" name="piso" placeholder="4" min="1" />
+              </div>
+              <div class="form-campo">
+                <label for="estacionamiento">Estacionamiento</label>
+                <select id="estacionamiento" name="estacionamiento">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="0">Sin estacionamiento</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3+">3 o más</option>
+                </select>
+              </div>
+              <div class="form-campo">
+                <label for="bodega">Bodega</label>
+                <select id="bodega" name="bodega">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="si">Sí</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Terreno + Parcela -->
+          <div class="form-grupo" id="campos-tierra" style="display:none">
+            <div class="form-fila form-fila-2">
+              <div class="form-campo">
+                <label for="superficie">Superficie total</label>
+                <div class="input-con-moneda">
+                  <input type="number" id="superficie" name="superficie" placeholder="5.000" min="0" />
+                  <select name="unidad_superficie" id="unidad_superficie">
+                    <option value="m2">m²</option>
+                    <option value="ha">há</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-campo">
+                <label for="uso_suelo">Uso de suelo</label>
+                <select id="uso_suelo" name="uso_suelo">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="habitacional">Habitacional</option>
+                  <option value="agricola">Agrícola</option>
+                  <option value="comercial">Comercial</option>
+                  <option value="mixto">Mixto</option>
+                  <option value="industrial">Industrial</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-fila form-fila-3">
+              <div class="form-campo">
+                <label for="agua">Agua</label>
+                <select id="agua" name="agua">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="red">Red pública</option>
+                  <option value="apr">APR</option>
+                  <option value="pozo">Pozo propio</option>
+                  <option value="sin">Sin agua</option>
+                </select>
+              </div>
+              <div class="form-campo">
+                <label for="electricidad">Electricidad</label>
+                <select id="electricidad" name="electricidad">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="empalme">Empalme</option>
+                  <option value="sin">Sin electricidad</option>
+                </select>
+              </div>
+              <div class="form-campo">
+                <label for="acceso">Acceso</label>
+                <select id="acceso" name="acceso">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="pavimentado">Pavimentado</option>
+                  <option value="ripio">Ripio</option>
+                  <option value="tierra">Tierra</option>
+                </select>
+              </div>
+            </div>
+            <div class="deuda-bloque">
+              <label class="deuda-check-label">
+                <input type="checkbox" id="check-construccion" name="tiene_construccion" value="si" />
+                <span>Tiene construcción</span>
+              </label>
+              <div class="deuda-monto" id="monto-construccion" style="display:none">
+                <div class="form-campo">
+                  <label for="m2_construidos">M² construidos</label>
+                  <input type="number" id="m2_construidos" name="m2_construidos" placeholder="120" min="1" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Solo Terreno -->
+          <div class="form-grupo" id="campos-terreno-extra" style="display:none">
+            <div class="form-fila form-fila-2">
+              <div class="form-campo">
+                <label for="frente">Frente (metros lineales)</label>
+                <input type="number" id="frente" name="frente" placeholder="12" min="0" step="0.1" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Solo Parcela -->
+          <div class="form-grupo" id="campos-parcela-extra" style="display:none">
+            <div class="form-fila form-fila-2">
+              <div class="form-campo">
+                <label for="rol_sii">Rol SII</label>
+                <input type="text" id="rol_sii" name="rol_sii" placeholder="123-45" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Oficina + Local -->
+          <div class="form-grupo" id="campos-comercial" style="display:none">
+            <div class="form-fila form-fila-3">
+              <div class="form-campo">
+                <label for="m2_com">M² totales</label>
+                <input type="number" id="m2_com" name="m2" placeholder="60" min="1" />
+              </div>
+              <div class="form-campo">
+                <label for="piso_com">Piso</label>
+                <input type="number" id="piso_com" name="piso" placeholder="3" min="1" />
+              </div>
+              <div class="form-campo">
+                <label for="orientacion_com">Orientación</label>
+                <select id="orientacion_com" name="orientacion">
+                  <option value="" disabled selected>Selecciona</option>
+                  <option value="norte">Norte</option>
+                  <option value="sur">Sur</option>
+                  <option value="oriente">Oriente</option>
+                  <option value="poniente">Poniente</option>
+                  <option value="nororiente">Nororiente</option>
+                  <option value="norponiente">Norponiente</option>
+                  <option value="suroriente">Suroriente</option>
+                  <option value="surponiente">Surponiente</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bodega / Estacionamiento -->
+          <div class="form-grupo" id="campos-bodega-est" style="display:none">
+            <div class="form-fila form-fila-2">
+              <div class="form-campo">
+                <label for="m2_bod">M² totales</label>
+                <input type="number" id="m2_bod" name="m2" placeholder="15" min="1" />
+              </div>
+              <div class="form-campo">
+                <label for="piso_bod">Piso</label>
+                <input type="number" id="piso_bod" name="piso" placeholder="-1" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-seccion">
+          <span class="form-seccion-titulo">Pretensión de venta</span>
+          <div class="form-fila form-fila-2">
+            <div class="form-campo">
+              <label for="precio">¿Cuánto quieres obtener?</label>
+              <div class="input-con-moneda">
+                <input type="number" id="precio" name="precio" placeholder="5.000" min="0" required />
+                <select name="moneda_precio" id="moneda_precio">
+                  <option value="UF">UF</option>
+                  <option value="CLP">CLP</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-campo">
+              <label for="tiempo">¿Hace cuánto está publicada?</label>
+              <select id="tiempo" name="tiempo" required>
+                <option value="" disabled selected>Selecciona</option>
+                <option value="menos-6">Menos de 6 meses</option>
+                <option value="6-12">6 a 12 meses</option>
+                <option value="12-18">12 a 18 meses</option>
+                <option value="18-24">18 a 24 meses</option>
+                <option value="24+">Más de 24 meses</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-seccion">
+          <span class="form-seccion-titulo">Situación financiera</span>
+          <div class="deuda-bloque">
+            <label class="deuda-check-label">
+              <input type="checkbox" id="check-hipotecaria" name="tiene_hipotecaria" value="si" />
+              <span>Tiene deuda hipotecaria</span>
+            </label>
+            <div class="deuda-monto" id="monto-hipotecaria" style="display:none">
+              <div class="form-campo">
+                <label for="monto_hipotecaria">Monto deuda hipotecaria</label>
+                <div class="input-con-moneda">
+                  <input type="number" id="monto_hipotecaria" name="monto_hipotecaria" placeholder="3.000" min="0" />
+                  <select name="moneda_hipotecaria">
+                    <option value="UF">UF</option>
+                    <option value="CLP">CLP</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="deuda-bloque">
+            <label class="deuda-check-label">
+              <input type="checkbox" id="check-contribuciones" name="tiene_contribuciones" value="si" />
+              <span>Tiene deudas de contribuciones</span>
+            </label>
+            <div class="deuda-monto" id="monto-contribuciones" style="display:none">
+              <div class="form-campo">
+                <label for="monto_contribuciones">Monto contribuciones adeudadas</label>
+                <div class="input-con-moneda">
+                  <input type="number" id="monto_contribuciones" name="monto_contribuciones" placeholder="500.000" min="0" />
+                  <select name="moneda_contribuciones">
+                    <option value="CLP">CLP</option>
+                    <option value="UF">UF</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="boton">Enviar información</button>
+      </form>
+
+      <div class="form-exito" id="formExito" style="display:none">
+        <p>Recibido. Te contacto en las próximas 24 horas hábiles.</p>
+      </div>
     </section>
 
     <footer>
@@ -89,5 +434,47 @@
     </footer>
 
   </div>
+  <script>
+    var gruposTipo = ['campos-residencial','campos-depto-extra','campos-tierra','campos-terreno-extra','campos-parcela-extra','campos-comercial','campos-bodega-est'];
+
+    function mostrar(id) { document.getElementById(id).style.display = 'flex'; }
+    function ocultar(id) { document.getElementById(id).style.display = 'none'; }
+
+    document.getElementById('tipo').addEventListener('change', function() {
+      gruposTipo.forEach(ocultar);
+      var v = this.value;
+      if (v === 'casa') {
+        mostrar('campos-residencial');
+      } else if (v === 'departamento') {
+        mostrar('campos-residencial');
+        mostrar('campos-depto-extra');
+      } else if (v === 'terreno') {
+        mostrar('campos-tierra');
+        mostrar('campos-terreno-extra');
+      } else if (v === 'parcela') {
+        mostrar('campos-tierra');
+        mostrar('campos-parcela-extra');
+      } else if (v === 'oficina' || v === 'local') {
+        mostrar('campos-comercial');
+      } else if (v === 'bodega') {
+        mostrar('campos-bodega-est');
+      }
+    });
+
+    document.getElementById('check-construccion').addEventListener('change', function() {
+      document.getElementById('monto-construccion').style.display = this.checked ? 'block' : 'none';
+    });
+    document.getElementById('check-hipotecaria').addEventListener('change', function() {
+      document.getElementById('monto-hipotecaria').style.display = this.checked ? 'block' : 'none';
+    });
+    document.getElementById('check-contribuciones').addEventListener('change', function() {
+      document.getElementById('monto-contribuciones').style.display = this.checked ? 'block' : 'none';
+    });
+    document.getElementById('formPropiedad').addEventListener('submit', function(e) {
+      e.preventDefault();
+      this.style.display = 'none';
+      document.getElementById('formExito').style.display = 'block';
+    });
+  </script>
 </body>
 </html>

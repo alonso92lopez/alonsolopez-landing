@@ -205,6 +205,196 @@ h2 {
   background: #333;
 }
 
+/* Formulario de propiedad */
+.form-propiedad {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 28px;
+}
+
+.form-seccion {
+  border-top: 1px solid var(--borde);
+  padding: 28px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-seccion:last-of-type {
+  padding-bottom: 0;
+}
+
+.form-seccion-titulo {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--negro);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.form-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-fila-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-fila-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.form-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-campo label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--gris-medio);
+}
+
+.form-campo input,
+.form-campo select,
+.form-campo textarea {
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--negro);
+  background: var(--gris-claro);
+  border: 1px solid var(--borde);
+  border-radius: 3px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.form-campo input:focus,
+.form-campo select:focus,
+.form-campo textarea:focus {
+  border-color: var(--negro);
+}
+
+.form-campo input::placeholder,
+.form-campo textarea::placeholder {
+  color: #bbb;
+}
+
+.form-campo select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+/* Input con selector de moneda */
+.input-con-moneda {
+  display: flex;
+  border: 1px solid var(--borde);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--gris-claro);
+}
+
+.input-con-moneda input {
+  border: none;
+  border-radius: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.input-con-moneda input:focus {
+  border-color: transparent;
+}
+
+.input-con-moneda:focus-within {
+  border-color: var(--negro);
+}
+
+.input-con-moneda select {
+  border: none;
+  border-left: 1px solid var(--borde);
+  border-radius: 0;
+  background: var(--gris-claro);
+  width: auto;
+  min-width: 64px;
+  padding: 10px 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gris-oscuro);
+  cursor: pointer;
+  background-image: none;
+}
+
+/* Sección deudas */
+.deuda-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.deuda-check-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--gris-oscuro);
+  user-select: none;
+}
+
+.deuda-check-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--negro);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.deuda-monto {
+  padding-left: 26px;
+  max-width: 320px;
+}
+
+/* Botón submit */
+.form-propiedad .boton {
+  align-self: flex-start;
+  margin-top: 28px;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.form-exito p {
+  font-size: 0.95rem;
+  color: var(--gris-oscuro);
+  padding: 16px;
+  background: var(--gris-claro);
+  border-radius: 3px;
+  margin-top: 24px;
+}
+
 /* Footer */
 footer {
   font-size: 0.8rem;
@@ -232,5 +422,17 @@ footer a:hover {
 
   .hero p {
     font-size: 1rem;
+  }
+
+  .form-fila-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .form-fila-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .deuda-monto {
+    max-width: 100%;
   }
 }
