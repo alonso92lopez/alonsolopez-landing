@@ -470,10 +470,32 @@
     document.getElementById('check-contribuciones').addEventListener('change', function() {
       document.getElementById('monto-contribuciones').style.display = this.checked ? 'block' : 'none';
     });
-    document.getElementById('formPropiedad').addEventListener('submit', function(e) {
+    document.getElementById('formPropiedad').addEventListener('submit', async function(e) {
       e.preventDefault();
-      this.style.display = 'none';
-      document.getElementById('formExito').style.display = 'block';
+      var btn = this.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      var data = Object.fromEntries(new FormData(this).entries());
+      try {
+        var res = await fetch('/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        var result = await res.json();
+        if (result.ok) {
+          this.style.display = 'none';
+          document.getElementById('formExito').style.display = 'block';
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Enviar información';
+          alert('Hubo un error al enviar. Por favor inténtalo de nuevo.');
+        }
+      } catch(err) {
+        btn.disabled = false;
+        btn.textContent = 'Enviar información';
+        alert('Hubo un error al enviar. Por favor inténtalo de nuevo.');
+      }
     });
   </script>
 </body>
