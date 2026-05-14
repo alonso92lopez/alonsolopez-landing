@@ -63,6 +63,7 @@ header {
   font-size: 1.1rem;
   color: var(--gris-oscuro);
   line-height: 1.75;
+  text-align: justify;
 }
 
 /* Bloques */
@@ -114,6 +115,7 @@ h2 {
 .paso p {
   font-size: 0.9rem;
   color: var(--gris-oscuro);
+  text-align: justify;
 }
 
 /* Lista */
@@ -210,6 +212,7 @@ h2 {
   font-size: 0.9rem;
   color: var(--gris-oscuro);
   margin-bottom: 24px;
+  text-align: justify;
 }
 
 .bloque-texto {
@@ -217,6 +220,7 @@ h2 {
   color: var(--gris-oscuro);
   line-height: 1.75;
   margin-bottom: 14px;
+  text-align: justify;
 }
 
 .bloque-texto:last-child {
