@@ -48,7 +48,8 @@ export async function onRequestPost(context) {
   if (data.monto_contribuciones) props['Deuda contribuciones'] = { number: Number(data.monto_contribuciones) };
   if (data.moneda_contribuciones) props['Moneda contribuciones'] = { select: { name: data.moneda_contribuciones } };
 
-  props['Estado']        = { select: { name: 'Nuevo' } };
+  props['Asignado']      = { select: { name: 'Por Asignar' } };
+  props['Estado']        = { select: { name: 'nuevo' } };
   props['Canal origen']  = { select: { name: 'Formulario web' } };
   props['Fecha envío']   = { date: { start: new Date().toISOString().split('T')[0] } };
 
