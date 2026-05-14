@@ -70,7 +70,37 @@ export async function onRequestPost(context) {
     return json({ ok: false }, 500);
   }
 
+  const msg = buildAlertMessage(data, tipoMap);
+  await Promise.allSettled([
+    notifyWhatsApp(env.WA_ALONSO_PHONE, env.WA_ALONSO_KEY, msg),
+    notifyWhatsApp(env.WA_PABLO_PHONE,  env.WA_PABLO_KEY,  msg),
+  ]);
+
   return json({ ok: true });
+}
+
+async function notifyWhatsApp(phone, apikey, text) {
+  if (!phone || !apikey) return;
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&apikey=${apikey}`;
+  await fetch(url);
+}
+
+function buildAlertMessage(data, tipoMap) {
+  const tipo  = tipoMap[data.tipo] || data.tipo || '—';
+  const lugar = [data.comuna, data.region].filter(Boolean).join(', ') || '—';
+  const precio = data.precio
+    ? `${Number(data.precio).toLocaleString('es-CL')} ${data.moneda_precio || ''}`
+    : '—';
+
+  return [
+    '🏠 Nuevo lead — alonsolopez.cl',
+    `Nombre:   ${data.nombre || '—'}`,
+    `Telefono: ${data.telefono || '—'}`,
+    `Email:    ${data.email || '—'}`,
+    `Tipo:     ${tipo}`,
+    `Lugar:    ${lugar}`,
+    `Precio:   ${precio}`,
+  ].join('\n');
 }
 
 function rt(text) {
