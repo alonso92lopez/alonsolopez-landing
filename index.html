@@ -423,9 +423,14 @@
         <div class="form-seccion">
           <span class="form-seccion-titulo">Situación financiera</span>
           <div class="deuda-bloque">
+            <span style="display:block;margin-bottom:8px;font-size:.9rem;color:#444;">¿Tiene deuda hipotecaria? *</span>
             <label class="deuda-check-label">
-              <input type="checkbox" id="check-hipotecaria" name="tiene_hipotecaria" value="si" />
-              <span>Tiene deuda hipotecaria</span>
+              <input type="radio" name="tiene_hipotecaria" value="si" required />
+              <span>Sí</span>
+            </label>
+            <label class="deuda-check-label">
+              <input type="radio" name="tiene_hipotecaria" value="no" />
+              <span>No</span>
             </label>
             <div class="deuda-monto" id="monto-hipotecaria" style="display:none">
               <div class="form-campo">
@@ -475,12 +480,25 @@
   </div>
   <script>
     var gruposTipo = ['campos-residencial','campos-depto-extra','campos-tierra','campos-terreno-extra','campos-parcela-extra','campos-comercial','campos-bodega-est'];
+    // Campos que pueden volverse obligatorios según el tipo (se limpian en cada cambio).
+    var dinamicos = ['m2','m2_construidos_res','habitaciones','banos','estacionamiento','bodega','superficie','uso_suelo','m2_com','m2_bod'];
+    var reqPorTipo = {
+      casa:         ['m2','m2_construidos_res','habitaciones','banos'],
+      departamento: ['m2','m2_construidos_res','habitaciones','banos','estacionamiento','bodega'],
+      terreno:      ['superficie','uso_suelo'],
+      parcela:      ['superficie','uso_suelo'],
+      oficina:      ['m2_com'],
+      local:        ['m2_com'],
+      bodega:       ['m2_bod'],
+    };
 
     function mostrar(id) { document.getElementById(id).style.display = 'flex'; }
     function ocultar(id) { document.getElementById(id).style.display = 'none'; }
+    function setReq(id, on) { var el = document.getElementById(id); if (el) el.required = on; }
 
     document.getElementById('tipo').addEventListener('change', function() {
       gruposTipo.forEach(ocultar);
+      dinamicos.forEach(function(id) { setReq(id, false); });
       var v = this.value;
       if (v === 'casa') {
         mostrar('campos-residencial');
@@ -498,13 +516,18 @@
       } else if (v === 'bodega') {
         mostrar('campos-bodega-est');
       }
+      (reqPorTipo[v] || []).forEach(function(id) { setReq(id, true); });
     });
 
     document.getElementById('check-construccion').addEventListener('change', function() {
       document.getElementById('monto-construccion').style.display = this.checked ? 'block' : 'none';
     });
-    document.getElementById('check-hipotecaria').addEventListener('change', function() {
-      document.getElementById('monto-hipotecaria').style.display = this.checked ? 'block' : 'none';
+    document.querySelectorAll('input[name="tiene_hipotecaria"]').forEach(function(r) {
+      r.addEventListener('change', function() {
+        var si = this.value === 'si';
+        document.getElementById('monto-hipotecaria').style.display = si ? 'block' : 'none';
+        setReq('monto_hipotecaria', si);
+      });
     });
     document.getElementById('check-contribuciones').addEventListener('change', function() {
       document.getElementById('monto-contribuciones').style.display = this.checked ? 'block' : 'none';
@@ -515,6 +538,7 @@
       btn.disabled = true;
       btn.textContent = 'Enviando...';
       var data = Object.fromEntries(new FormData(this).entries());
+      if (data.tiene_hipotecaria !== 'si') data.monto_hipotecaria = '0';
       try {
         var res = await fetch('/submit', {
           method: 'POST',
