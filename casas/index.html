@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal de casas de remate — Alonso López</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .prop-card {
+      border: 1px solid var(--borde);
+      border-radius: 4px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .prop-card h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .prop-sub { font-size: 0.85rem; color: var(--gris-medio); margin-bottom: 18px; }
+    .prop-datos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 20px;
+      background: var(--gris-claro);
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .prop-datos div { font-size: 0.88rem; color: var(--gris-oscuro); }
+    .prop-datos span { color: var(--gris-medio); }
+    .prop-form { display: flex; flex-direction: column; gap: 16px; }
+    .badge {
+      display: inline-block; font-size: 0.75rem; font-weight: 600;
+      background: #e8f3e8; color: #2a6b2a; padding: 3px 10px; border-radius: 99px;
+      margin-bottom: 14px;
+    }
+    .prop-ok {
+      font-size: 0.95rem; color: #2a6b2a; background: #e8f3e8;
+      padding: 14px 16px; border-radius: 3px;
+    }
+    .aviso { font-size: 0.95rem; color: var(--gris-oscuro); padding: 16px; background: var(--gris-claro); border-radius: 3px; }
+    .resultado-opts { display: flex; gap: 20px; flex-wrap: wrap; }
+    .montos { flex-direction: column; gap: 16px; }
+    @media (max-width: 480px) { .prop-datos { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/logo.svg" alt="AL" class="logo" />
+      <div class="nombre">Alonso López</div>
+      <div class="tagline">Portal de casas de remate</div>
+    </header>
+
+    <div id="intro" class="bloque" style="display:none">
+      <p class="bloque-intro" id="saludo"></p>
+      <p class="bloque-intro">Revisa las propiedades disponibles y sube tu proyección de subasta para cada una. Los datos son de la propiedad; el contacto del propietario lo gestiona Alonso López.</p>
+    </div>
+
+    <div id="lista"></div>
+    <div id="mensaje" class="aviso" style="display:none"></div>
+
+    <footer>
+      <p>Alonso López · <a href="mailto:contacto@alonsolopez.cl">contacto@alonsolopez.cl</a></p>
+    </footer>
+  </div>
+
+  <script>
+    var token = new URLSearchParams(location.search).get('t') || '';
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+        return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+      });
+    }
+    function tiene(v) { return v !== null && v !== undefined && v !== ''; }
+    function linea(label, v) {
+      return tiene(v) ? '<div><span>' + esc(label) + ':</span> ' + esc(v) + '</div>' : '';
+    }
+    function deuda(v, moneda) {
+      if (!tiene(v)) return '';
+      return Number(v) === 0 ? 'Sin deuda' : Number(v).toLocaleString('es-CL') + ' ' + (moneda || '');
+    }
+
+    function datosHTML(p) {
+      var sup = tiene(p.superficie) ? (p.superficie + ' ' + (p.unidad_superficie || '')) : '';
+      return [
+        linea('Tipo', p.tipo),
+        linea('Comuna', p.comuna),
+        linea('Región', p.region),
+        linea('Dirección', p.direccion),
+        linea('M² totales', p.m2),
+        linea('M² construidos', p.m2_construidos),
+        linea('Habitaciones', p.habitaciones),
+        linea('Baños', p.banos),
+        linea('Estacionamiento', p.estacionamiento),
+        linea('Bodega', p.bodega),
+        linea('Piso', p.piso),
+        linea('Orientación', p.orientacion),
+        linea('Superficie', sup),
+        linea('Uso de suelo', p.uso_suelo),
+        linea('Deuda hipotecaria', deuda(p.deuda_hipotecaria, p.moneda_hipotecaria)),
+        linea('Deuda contribuciones', deuda(p.deuda_contribuciones, p.moneda_contribuciones)),
+      ].join('');
+    }
+
+    function cardHTML(p) {
+      var badge = p.yaCotizada ? '<span class="badge">Ya enviaste una proyección</span>' : '';
+      return ''
+        + '<div class="prop-card" data-id="' + esc(p.id) + '" data-codigo="' + esc(p.codigo) + '">'
+        +   '<h3>' + esc(p.codigo) + ' · ' + esc(p.tipo || '') + '</h3>'
+        +   '<div class="prop-sub">' + esc([p.comuna, p.region].filter(Boolean).join(', ')) + '</div>'
+        +   '<div class="prop-datos">' + datosHTML(p) + '</div>'
+        +   badge
+        +   '<form class="prop-form">'
+        +     '<span class="form-seccion-titulo">Tu proyección</span>'
+        +     '<div class="form-campo"><label>¿La propiedad califica para subasta?</label>'
+        +       '<div class="resultado-opts">'
+        +         '<label class="deuda-check-label"><input type="radio" name="resultado" value="Cotiza" required /> <span>Sí, califica</span></label>'
+        +         '<label class="deuda-check-label"><input type="radio" name="resultado" value="No califica" /> <span>No califica</span></label>'
+        +       '</div>'
+        +     '</div>'
+        +     '<div class="montos" style="display:none">'
+        +       '<div class="form-fila-2">'
+        +         '<div class="form-campo"><label>Monto mínimo</label>'
+        +           '<div class="input-con-moneda"><input type="number" name="monto_minimo" min="0" placeholder="2.000" />'
+        +             '<select name="moneda"><option value="UF">UF</option><option value="CLP">CLP</option></select></div></div>'
+        +         '<div class="form-campo"><label>Monto proyectado</label>'
+        +           '<input type="number" name="monto_proyectado" min="0" placeholder="2.300" /></div>'
+        +       '</div>'
+        +       '<div class="form-campo"><label>Costo adicional / publicidad <span style="text-transform:none;font-weight:400;color:var(--gris-medio)">(opcional)</span></label>'
+        +         '<input type="number" name="costo_adicional" min="0" placeholder="0" /></div>'
+        +     '</div>'
+        +     '<div class="form-campo"><label class="lbl-cond">Condiciones / observaciones</label><textarea name="condiciones" rows="2" placeholder="Opcional"></textarea></div>'
+        +     '<button type="submit" class="boton">Enviar proyección</button>'
+        +   '</form>'
+        + '</div>';
+    }
+
+    function mensaje(txt) {
+      var el = document.getElementById('mensaje');
+      el.textContent = txt;
+      el.style.display = 'block';
+    }
+
+    async function enviar(form, card) {
+      var btn = form.querySelector('button');
+      btn.disabled = true; btn.textContent = 'Enviando...';
+      var d = Object.fromEntries(new FormData(form).entries());
+      d.t = token;
+      d.propiedad_id = card.getAttribute('data-id');
+      d.codigo = card.getAttribute('data-codigo');
+      try {
+        var res = await fetch('/api/proyeccion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(d),
+        });
+        var r = await res.json();
+        if (r.ok) {
+          form.outerHTML = '<div class="prop-ok">✓ Proyección recibida. Gracias.</div>';
+        } else {
+          btn.disabled = false; btn.textContent = 'Enviar proyección';
+          alert('Hubo un error al enviar. Inténtalo de nuevo.');
+        }
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Enviar proyección';
+        alert('Hubo un error al enviar. Inténtalo de nuevo.');
+      }
+    }
+
+    function prepararForm(form) {
+      var montos = form.querySelector('.montos');
+      var mMin = form.querySelector('[name="monto_minimo"]');
+      var mProy = form.querySelector('[name="monto_proyectado"]');
+      var cond = form.querySelector('[name="condiciones"]');
+      var lbl = form.querySelector('.lbl-cond');
+      form.querySelectorAll('input[name="resultado"]').forEach(function(r) {
+        r.addEventListener('change', function() {
+          var cotiza = this.value === 'Cotiza';
+          montos.style.display = cotiza ? 'flex' : 'none';
+          mMin.required = cotiza;
+          mProy.required = cotiza;
+          cond.required = !cotiza;
+          lbl.textContent = cotiza ? 'Condiciones / observaciones' : 'Motivo (por qué no califica)';
+        });
+      });
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        enviar(form, form.closest('.prop-card'));
+      });
+    }
+
+    async function cargar() {
+      if (!token) { mensaje('Link inválido. Pídele a Alonso López tu enlace de acceso.'); return; }
+      try {
+        var res = await fetch('/api/propiedades?t=' + encodeURIComponent(token));
+        if (res.status === 401) { mensaje('Link inválido o expirado. Pídele a Alonso López tu enlace.'); return; }
+        var data = await res.json();
+        if (!data.ok) { mensaje('No se pudieron cargar las propiedades.'); return; }
+
+        document.getElementById('saludo').textContent = 'Hola, ' + data.casa + '.';
+        document.getElementById('intro').style.display = 'block';
+
+        if (!data.propiedades.length) {
+          mensaje('Por ahora no hay propiedades abiertas para cotizar. Te avisaremos cuando haya nuevas.');
+          return;
+        }
+        var lista = document.getElementById('lista');
+        lista.innerHTML = data.propiedades.map(cardHTML).join('');
+        lista.querySelectorAll('.prop-form').forEach(prepararForm);
+      } catch (e) {
+        mensaje('No se pudieron cargar las propiedades. Inténtalo más tarde.');
+      }
+    }
+
+    cargar();
+  </script>
+</body>
+</html>
