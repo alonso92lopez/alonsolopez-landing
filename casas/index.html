@@ -60,7 +60,7 @@
 
     <div id="intro" class="bloque" style="display:none">
       <p class="bloque-intro" id="saludo"></p>
-      <p class="bloque-intro">Revisa las propiedades disponibles y sube tu proyección de subasta para cada una. Los datos son de la propiedad; el contacto del propietario lo gestiona Alonso López.</p>
+      <p class="bloque-intro">Revisa las propiedades disponibles y sube tu proyección de subasta para cada una.</p>
     </div>
 
     <div id="lista"></div>
@@ -127,15 +127,17 @@
         +       '</div>'
         +     '</div>'
         +     '<div class="montos" style="display:none">'
+        +       '<div class="form-campo" style="max-width:240px"><label>Moneda (mínimo y proyectado)</label>'
+        +         '<select name="moneda"><option value="UF">UF</option><option value="CLP">CLP</option></select></div>'
         +       '<div class="form-fila-2">'
-        +         '<div class="form-campo"><label>Monto mínimo</label>'
-        +           '<div class="input-con-moneda"><input type="number" name="monto_minimo" min="0" placeholder="2.000" />'
-        +             '<select name="moneda"><option value="UF">UF</option><option value="CLP">CLP</option></select></div></div>'
-        +         '<div class="form-campo"><label>Monto proyectado</label>'
+        +         '<div class="form-campo"><label class="lbl-min">Monto mínimo (UF)</label>'
+        +           '<input type="number" name="monto_minimo" min="0" placeholder="2.000" /></div>'
+        +         '<div class="form-campo"><label class="lbl-proy">Monto proyectado (UF)</label>'
         +           '<input type="number" name="monto_proyectado" min="0" placeholder="2.300" /></div>'
         +       '</div>'
         +       '<div class="form-campo"><label>Costo adicional / publicidad <span style="text-transform:none;font-weight:400;color:var(--gris-medio)">(opcional)</span></label>'
-        +         '<input type="number" name="costo_adicional" min="0" placeholder="0" /></div>'
+        +         '<div class="input-con-moneda"><input type="number" name="costo_adicional" min="0" placeholder="0" />'
+        +           '<select name="moneda_costo"><option value="UF">UF</option><option value="CLP">CLP</option></select></div></div>'
         +     '</div>'
         +     '<div class="form-campo"><label class="lbl-cond">Condiciones / observaciones</label><textarea name="condiciones" rows="2" placeholder="Opcional"></textarea></div>'
         +     '<button type="submit" class="boton">Enviar proyección</button>'
@@ -181,6 +183,16 @@
       var mProy = form.querySelector('[name="monto_proyectado"]');
       var cond = form.querySelector('[name="condiciones"]');
       var lbl = form.querySelector('.lbl-cond');
+      var moneda = form.querySelector('[name="moneda"]');
+      var lblMin = form.querySelector('.lbl-min');
+      var lblProy = form.querySelector('.lbl-proy');
+      function syncMoneda() {
+        var u = moneda.value;
+        lblMin.textContent = 'Monto mínimo (' + u + ')';
+        lblProy.textContent = 'Monto proyectado (' + u + ')';
+      }
+      moneda.addEventListener('change', syncMoneda);
+      syncMoneda();
       form.querySelectorAll('input[name="resultado"]').forEach(function(r) {
         r.addEventListener('change', function() {
           var cotiza = this.value === 'Cotiza';

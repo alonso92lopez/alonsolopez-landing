@@ -23,8 +23,9 @@ export async function onRequestPost(context) {
   num(props, 'Monto mínimo', body.monto_minimo);
   num(props, 'Monto proyectado', body.monto_proyectado);
   num(props, 'Costo adicional', body.costo_adicional);
-  if (body.moneda)      props['Moneda'] = { select: { name: body.moneda } };
-  if (body.condiciones) props['Condiciones'] = { rich_text: [{ text: { content: String(body.condiciones) } }] };
+  if (body.moneda)       props['Moneda'] = { select: { name: body.moneda } };
+  if (body.moneda_costo) props['Moneda costo'] = { select: { name: body.moneda_costo } };
+  if (body.condiciones)  props['Condiciones'] = { rich_text: [{ text: { content: String(body.condiciones) } }] };
 
   const res = await fetch('https://api.notion.com/v1/pages', {
     method: 'POST',
@@ -45,7 +46,7 @@ export async function onRequestPost(context) {
     lineas.push(`Mínimo:     ${fmt(body.monto_minimo)} ${moneda}`);
     lineas.push(`Proyectado: ${fmt(body.monto_proyectado)} ${moneda}`);
     if (body.costo_adicional && Number(body.costo_adicional) > 0) {
-      lineas.push(`Costo adicional: ${fmt(body.costo_adicional)} ${moneda}`);
+      lineas.push(`Costo adicional: ${fmt(body.costo_adicional)} ${body.moneda_costo || ''}`);
     }
   }
   await notifyWhatsApp(env.WA_ALONSO_PHONE, env.WA_ALONSO_KEY, lineas.join('\n'));
