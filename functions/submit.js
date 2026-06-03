@@ -25,6 +25,10 @@ export async function onRequestPost(context) {
   if (data.region)             props['Región']               = rt(data.region);
   if (data.m2)                 props['M²']                   = { number: Number(data.m2) };
   if (data.m2_construidos)     props['M² construidos']       = { number: Number(data.m2_construidos) };
+  if (data.m2_utiles)          props['M² útiles']            = { number: Number(data.m2_utiles) };
+  if (data.m2_totales)         props['M² totales']           = { number: Number(data.m2_totales) };
+  if (data.m2_utiles && data.m2_totales)
+                               props['M² ponderados']        = { number: Math.round((Number(data.m2_utiles) + Number(data.m2_totales)) / 2) };
   if (data.habitaciones)       props['Habitaciones']         = { number: Number(data.habitaciones) };
   if (data.banos)              props['Baños']                = { number: Number(data.banos) };
   if (data.balcon)             props['Balcón']               = { select: { name: data.balcon === 'si' ? 'Sí' : 'No' } };

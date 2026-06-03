@@ -200,12 +200,12 @@
           <div class="form-grupo" id="campos-residencial" style="display:none">
             <div class="form-fila form-fila-2">
               <div class="form-campo">
-                <label for="m2">M² totales</label>
-                <input type="number" id="m2" name="m2" placeholder="120" min="1" />
+                <label for="m2_utiles">M² útiles</label>
+                <input type="number" id="m2_utiles" name="m2_utiles" placeholder="85" min="1" />
               </div>
               <div class="form-campo">
-                <label for="m2_construidos_res">M² construidos</label>
-                <input type="number" id="m2_construidos_res" name="m2_construidos" placeholder="85" min="1" />
+                <label for="m2_totales">M² totales</label>
+                <input type="number" id="m2_totales" name="m2_totales" placeholder="120" min="1" />
               </div>
             </div>
             <div class="form-fila form-fila-3">
@@ -481,10 +481,10 @@
   <script>
     var gruposTipo = ['campos-residencial','campos-depto-extra','campos-tierra','campos-terreno-extra','campos-parcela-extra','campos-comercial','campos-bodega-est'];
     // Campos que pueden volverse obligatorios según el tipo (se limpian en cada cambio).
-    var dinamicos = ['m2','m2_construidos_res','habitaciones','banos','estacionamiento','bodega','superficie','uso_suelo','m2_com','m2_bod'];
+    var dinamicos = ['m2_utiles','m2_totales','habitaciones','banos','estacionamiento','bodega','superficie','uso_suelo','m2_com','m2_bod'];
     var reqPorTipo = {
-      casa:         ['m2','m2_construidos_res','habitaciones','banos'],
-      departamento: ['m2','m2_construidos_res','habitaciones','banos','estacionamiento','bodega'],
+      casa:         ['m2_utiles','m2_totales','habitaciones','banos'],
+      departamento: ['m2_utiles','m2_totales','habitaciones','banos','estacionamiento','bodega'],
       terreno:      ['superficie','uso_suelo'],
       parcela:      ['superficie','uso_suelo'],
       oficina:      ['m2_com'],
