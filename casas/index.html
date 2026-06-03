@@ -59,6 +59,7 @@
     </header>
 
     <div id="intro" class="bloque" style="display:none">
+      <img id="casa-logo" alt="" style="display:none;max-height:52px;margin-bottom:16px;" />
       <p class="bloque-intro" id="saludo"></p>
       <p class="bloque-intro">Revisa las propiedades disponibles y sube tu proyección de subasta para cada una.</p>
     </div>
@@ -219,6 +220,19 @@
         if (!data.ok) { mensaje('No se pudieron cargar las propiedades.'); return; }
 
         document.getElementById('saludo').textContent = 'Hola, ' + data.casa + '.';
+        var LOGOS_CASA = {
+          'Macal': '/logo-macal.jpg',
+          'Remates del Río': '/logo-rematesdelrio.png',
+          'Tattersall': '/logo-tattersall.png',
+          'Zárate': '/logo-zarate.png',
+        };
+        var logoCasa = LOGOS_CASA[data.casa];
+        if (logoCasa) {
+          var elLogo = document.getElementById('casa-logo');
+          elLogo.src = logoCasa;
+          elLogo.alt = data.casa;
+          elLogo.style.display = 'block';
+        }
         document.getElementById('intro').style.display = 'block';
 
         if (!data.propiedades.length) {
