@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Estado de tu propiedad — Alonso López</title>
+  <title>Portal de Remates — Seguimiento de tu propiedad</title>
   <meta name="robots" content="noindex" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,87 +11,128 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="stylesheet" href="/style.css" />
   <style>
-    .resumen {
-      background: var(--gris-claro);
-      border-radius: 4px;
-      padding: 16px 18px;
-      margin-bottom: 36px;
-    }
-    .resumen .titulo { font-size: 0.95rem; font-weight: 600; margin-bottom: 2px; }
-    .resumen .sub { font-size: 0.85rem; color: var(--gris-medio); }
+    /* Header: marca chica + título protagonista */
+    .marca-mini { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; }
+    .marca-mini img { width: 24px; height: 24px; border-radius: 4px; display: block; }
+    .marca-mini .txt { font-size: 0.76rem; color: var(--gris-medio); line-height: 1.3; }
+    .marca-mini .txt strong { color: var(--gris-oscuro); font-weight: 600; }
+    .portal-titulo { font-size: 1.7rem; font-weight: 600; letter-spacing: -0.3px; }
+    .portal-sub { font-size: 0.95rem; color: var(--gris-medio); margin-top: 2px; }
 
-    /* Estados de la línea de tiempo */
-    .timeline-paso.is-done::before { background: var(--negro); }
-    .timeline-paso.is-done .timeline-titulo { color: var(--gris-medio); }
-    .timeline-paso.is-current::before {
-      box-shadow: 0 0 0 1px var(--negro), 0 0 0 5px rgba(0,0,0,0.08);
-    }
-    .timeline-paso.is-current .timeline-titulo { font-weight: 600; color: var(--negro); }
-    .timeline-paso.is-future::before {
-      background: #fff; box-shadow: 0 0 0 1px var(--borde);
-    }
-    .timeline-paso.is-future .timeline-titulo { color: #aaa; font-weight: 400; }
-    .check { color: #2a6b2a; font-weight: 600; }
-    .badge-aqui {
-      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.4px;
-      background: #111; color: #fff; padding: 2px 9px; border-radius: 99px;
-      text-transform: uppercase;
-    }
+    #saludo { font-size: 0.95rem; color: var(--gris-oscuro); margin-bottom: 26px; }
 
+    /* Barra de estado (stepper horizontal) */
+    .stepper { display: flex; margin: 6px 0 20px; }
+    .step {
+      flex: 1; position: relative;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .step:not(:last-child)::after {
+      content: ''; position: absolute; top: 9px; left: 50%;
+      width: 100%; height: 2px; background: var(--borde); z-index: 0;
+    }
+    .step.is-done:not(:last-child)::after { background: var(--negro); }
+    .step .dot {
+      position: relative; z-index: 1;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; border: 2px solid var(--borde);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; color: #fff; line-height: 1;
+    }
+    .step.is-done .dot { background: var(--negro); border-color: var(--negro); }
+    .step.is-current .dot {
+      background: var(--negro); border-color: var(--negro);
+      box-shadow: 0 0 0 4px rgba(0,0,0,0.10);
+    }
+    .step .lbl {
+      margin-top: 8px; font-size: 0.66rem; color: #bbb;
+      text-align: center; letter-spacing: 0.2px; max-width: 72px;
+    }
+    .step.is-done .lbl { color: var(--gris-medio); }
+    .step.is-current .lbl { color: var(--negro); font-weight: 600; }
+
+    .etapa-actual {
+      background: var(--gris-claro); border-radius: 4px;
+      padding: 16px 18px; margin-bottom: 14px;
+    }
+    .etapa-actual .nom {
+      font-size: 1rem; font-weight: 600; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+    }
+    .etapa-actual .paso-n {
+      font-size: 0.7rem; font-weight: 600; color: #fff; background: #111;
+      padding: 2px 9px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .etapa-actual .desc { font-size: 0.92rem; color: var(--gris-oscuro); text-align: justify; }
+    .estado-nota { font-size: 0.9rem; color: var(--gris-oscuro); margin-bottom: 8px; }
+
+    /* Datos de la propiedad */
     .datos-intro { font-size: 0.9rem; color: var(--gris-medio); margin-bottom: 16px; text-align: justify; }
     .prop-datos {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px 20px;
-      background: var(--gris-claro);
-      border-radius: 4px;
-      padding: 16px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px;
+      background: var(--gris-claro); border-radius: 4px; padding: 16px;
     }
     .prop-datos div { font-size: 0.88rem; color: var(--gris-oscuro); }
     .prop-datos span { color: var(--gris-medio); }
-    @media (max-width: 480px) { .prop-datos { grid-template-columns: 1fr; } }
 
-    .estado-msg {
-      margin-top: 28px;
-      font-size: 0.95rem;
-      color: var(--gris-oscuro);
-      background: var(--gris-claro);
-      border-radius: 4px;
-      padding: 16px 18px;
-      text-align: justify;
+    /* Próximos pasos */
+    .proximos { display: flex; flex-direction: column; gap: 14px; }
+    .proximo { display: flex; gap: 14px; align-items: flex-start; }
+    .proximo .ic {
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+      border: 1px solid var(--borde); color: var(--gris-medio); font-size: 0.72rem;
+      font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 1px;
     }
-    .estado-nota {
-      margin-top: 14px; font-size: 0.9rem; color: var(--gris-oscuro);
+    .proximo .cont strong { display: block; font-size: 0.92rem; font-weight: 600; }
+    .proximo .cont p { font-size: 0.86rem; color: var(--gris-oscuro); }
+    .proximos-cierre {
+      font-size: 0.92rem; color: var(--gris-oscuro);
+      background: var(--gris-claro); padding: 14px 16px; border-radius: 4px;
     }
-    .actualizado { margin-top: 24px; font-size: 0.8rem; color: var(--gris-medio); }
+
+    .actualizado { margin-top: 28px; font-size: 0.8rem; color: var(--gris-medio); }
     .aviso { font-size: 0.95rem; color: var(--gris-oscuro); padding: 16px; background: var(--gris-claro); border-radius: 3px; }
+
+    @media (max-width: 480px) {
+      .prop-datos { grid-template-columns: 1fr; }
+      .step .lbl { font-size: 0.6rem; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <img src="/logo.svg" alt="AL" class="logo" />
-      <div class="nombre">Alonso López</div>
-      <div class="tagline">Estado de tu propiedad</div>
+      <div class="marca-mini">
+        <img src="/logo.svg" alt="AL" />
+        <div class="txt"><strong>Alonso López</strong> · Asesor en alternativas de salida inmobiliaria</div>
+      </div>
+      <div class="portal-titulo">Portal de Remates</div>
+      <div class="portal-sub">Seguimiento de tu propiedad</div>
     </header>
 
     <div id="contenido" style="display:none">
-      <p class="bloque-intro" id="saludo"></p>
-      <div class="resumen" id="resumen" style="display:none">
-        <div class="titulo" id="resumen-titulo"></div>
-        <div class="sub" id="resumen-sub"></div>
+      <p id="saludo"></p>
+
+      <!-- 1. Barra de estado -->
+      <h2>En qué vamos</h2>
+      <div class="stepper" id="stepper"></div>
+      <div class="etapa-actual">
+        <div class="nom"><span class="paso-n" id="paso-n"></span><span id="etapa-nombre"></span></div>
+        <div class="desc" id="etapa-desc"></div>
       </div>
-
-      <h2>En qué va tu proceso</h2>
-      <div class="timeline" id="timeline"></div>
-
-      <div class="estado-msg" id="estado-msg" style="display:none"></div>
       <div class="estado-nota" id="estado-nota" style="display:none"></div>
 
-      <div id="datos-bloque" class="bloque" style="display:none;margin-top:44px;margin-bottom:0">
+      <!-- 2. Datos de la propiedad -->
+      <div id="datos-bloque" class="bloque" style="display:none;margin-top:40px">
         <h2>Datos de tu propiedad</h2>
         <p class="datos-intro">Estos son los datos con los que las casas de remate están evaluando tu propiedad. Si ves algo que corregir, escríbenos y lo ajustamos.</p>
         <div class="prop-datos" id="prop-datos"></div>
+      </div>
+
+      <!-- 3. Próximos pasos -->
+      <div id="proximos-bloque" class="bloque" style="margin-top:40px;margin-bottom:0">
+        <h2>Próximos pasos</h2>
+        <div id="proximos"></div>
       </div>
 
       <div class="actualizado" id="actualizado" style="display:none"></div>
@@ -107,22 +148,32 @@
   <script>
     var token = new URLSearchParams(location.search).get('t') || '';
 
-    // Orden = línea de tiempo. Las 'key' deben coincidir con las opciones del campo
+    // Orden = barra de estado. Las 'key' coinciden con las opciones del campo
     // 'Etapa portal' en Notion (ver comercial/portal/portal_lead.py).
     var ETAPAS = [
-      { key: 'Recibida',                label: 'Recibimos tu propiedad' },
-      { key: 'Validación',              label: 'Llamada de validación' },
-      { key: 'En evaluación',           label: 'En evaluación por las casas de remate' },
-      { key: 'Propuesta en preparación', label: 'Propuesta en preparación' },
-      { key: 'Propuesta enviada',       label: 'Propuesta enviada' },
+      { key: 'Recibida',                 corto: 'Recibida',   label: 'Recibimos tu propiedad' },
+      { key: 'Validación',               corto: 'Validación', label: 'Llamada de validación' },
+      { key: 'En evaluación',            corto: 'Evaluación', label: 'En evaluación por las casas de remate' },
+      { key: 'Propuesta en preparación', corto: 'Propuesta',  label: 'Propuesta en preparación' },
+      { key: 'Propuesta enviada',        corto: 'Enviada',    label: 'Propuesta enviada' },
     ];
 
+    // Frase del estado ACTUAL (presente).
     var DESCRIPCION = {
       'Recibida': 'Recibimos los datos de tu propiedad y los estamos revisando.',
       'Validación': 'Coordinaremos una llamada breve para validar la información antes de avanzar.',
       'En evaluación': 'Tu propiedad está siendo evaluada por nuestra red de casas de remate. Te avisaremos apenas tengamos novedades.',
       'Propuesta en preparación': 'Estamos preparando tu propuesta con la mejor alternativa de salida para tu propiedad.',
       'Propuesta enviada': 'Te enviamos la propuesta. Cualquier duda, escríbenos y la revisamos juntos.',
+    };
+
+    // Qué pasa en cada etapa (para "Próximos pasos", mirando hacia adelante).
+    var QUE_VIENE = {
+      'Recibida': 'Revisamos los datos de tu propiedad.',
+      'Validación': 'Te llamamos (~20 min) para validar la información y resolver tus dudas.',
+      'En evaluación': 'Las casas de remate de nuestra red evalúan tu propiedad.',
+      'Propuesta en preparación': 'Preparamos tu propuesta con la mejor alternativa de salida.',
+      'Propuesta enviada': 'Te enviamos la propuesta para revisarla juntos.',
     };
 
     function esc(s) {
@@ -141,6 +192,9 @@
     function datosHTML(d) {
       var sup = tiene(d.superficie) ? (d.superficie + ' ' + (d.unidad_superficie || '')) : '';
       return [
+        linea('Dirección', d.direccion),
+        linea('Comuna', d.comuna),
+        linea('Región', d.region),
         linea('Tipo', d.tipo),
         linea('M² útiles', d.m2_utiles),
         linea('M² totales', d.m2_totales),
@@ -174,15 +228,37 @@
       return 0; // sin etapa registrada -> asume la primera
     }
 
-    function pasoHTML(et, estado) {
-      var clase = 'timeline-paso is-' + estado;
-      var extra = '';
-      if (estado === 'done') extra = '<span class="check">✓</span>';
-      else if (estado === 'current') extra = '<span class="badge-aqui">Aquí</span>';
-      return ''
-        + '<div class="' + clase + '">'
-        +   '<div class="timeline-titulo">' + esc(et.label) + ' ' + extra + '</div>'
-        + '</div>';
+    function stepperHTML(actual) {
+      var html = '';
+      for (var i = 0; i < ETAPAS.length; i++) {
+        var estado = i < actual ? 'is-done' : (i === actual ? 'is-current' : 'is-future');
+        var contenido = i < actual ? '✓' : '';
+        html += ''
+          + '<div class="step ' + estado + '">'
+          +   '<div class="dot">' + contenido + '</div>'
+          +   '<div class="lbl">' + esc(ETAPAS[i].corto) + '</div>'
+          + '</div>';
+      }
+      return html;
+    }
+
+    function proximosHTML(actual) {
+      // Etapas que vienen después de la actual.
+      if (actual >= ETAPAS.length - 1) {
+        return '<div class="proximos-cierre">Ya te enviamos tu propuesta. El siguiente paso lo coordinamos contigo directamente — cualquier duda, escríbenos.</div>';
+      }
+      var filas = '';
+      var n = 1;
+      for (var i = actual + 1; i < ETAPAS.length; i++) {
+        filas += ''
+          + '<div class="proximo">'
+          +   '<div class="ic">' + n + '</div>'
+          +   '<div class="cont"><strong>' + esc(ETAPAS[i].label) + '</strong>'
+          +     '<p>' + esc(QUE_VIENE[ETAPAS[i].key] || '') + '</p></div>'
+          + '</div>';
+        n++;
+      }
+      return '<div class="proximos">' + filas + '</div>';
     }
 
     function fecha(iso) {
@@ -195,43 +271,34 @@
     }
 
     function render(d) {
-      document.getElementById('saludo').textContent =
-        (tiene(d.nombre) ? 'Hola, ' + d.nombre + '.' : 'Hola.')
-        + ' Este es el estado actual de tu propiedad.';
-
-      var sub = [d.tipo, d.comuna, d.region].filter(Boolean).join(' · ');
-      if (tiene(d.direccion) || sub) {
-        document.getElementById('resumen-titulo').textContent =
-          tiene(d.direccion) ? d.direccion : (d.tipo || 'Tu propiedad');
-        document.getElementById('resumen-sub').textContent = sub;
-        document.getElementById('resumen').style.display = 'block';
-      }
-
       var actual = indiceEtapa(d.etapa);
-      var html = '';
-      for (var i = 0; i < ETAPAS.length; i++) {
-        var estado = i < actual ? 'done' : (i === actual ? 'current' : 'future');
-        html += pasoHTML(ETAPAS[i], estado);
-      }
-      document.getElementById('timeline').innerHTML = html;
 
-      var desc = DESCRIPCION[ETAPAS[actual].key];
-      if (desc) {
-        var el = document.getElementById('estado-msg');
-        el.textContent = desc;
-        el.style.display = 'block';
-      }
+      document.getElementById('saludo').textContent =
+        (tiene(d.nombre) ? 'Hola, ' + d.nombre + '. ' : 'Hola. ')
+        + 'Aquí puedes seguir en qué va el proceso de tu propiedad.';
+
+      // 1. Barra de estado
+      document.getElementById('stepper').innerHTML = stepperHTML(actual);
+      document.getElementById('paso-n').textContent = 'Paso ' + (actual + 1) + ' de ' + ETAPAS.length;
+      document.getElementById('etapa-nombre').textContent = ETAPAS[actual].label;
+      document.getElementById('etapa-desc').textContent = DESCRIPCION[ETAPAS[actual].key] || '';
+
       if (tiene(d.mensaje)) {
         var nota = document.getElementById('estado-nota');
         nota.textContent = d.mensaje;
         nota.style.display = 'block';
       }
 
+      // 2. Datos de la propiedad
       var datos = datosHTML(d);
       if (datos) {
         document.getElementById('prop-datos').innerHTML = datos;
         document.getElementById('datos-bloque').style.display = 'block';
       }
+
+      // 3. Próximos pasos
+      document.getElementById('proximos').innerHTML = proximosHTML(actual);
+
       if (tiene(d.actualizado)) {
         var f = fecha(d.actualizado);
         if (f) {
