@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estado de tu propiedad — Alonso López</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .resumen {
+      background: var(--gris-claro);
+      border-radius: 4px;
+      padding: 16px 18px;
+      margin-bottom: 36px;
+    }
+    .resumen .titulo { font-size: 0.95rem; font-weight: 600; margin-bottom: 2px; }
+    .resumen .sub { font-size: 0.85rem; color: var(--gris-medio); }
+
+    /* Estados de la línea de tiempo */
+    .timeline-paso.is-done::before { background: var(--negro); }
+    .timeline-paso.is-done .timeline-titulo { color: var(--gris-medio); }
+    .timeline-paso.is-current::before {
+      box-shadow: 0 0 0 1px var(--negro), 0 0 0 5px rgba(0,0,0,0.08);
+    }
+    .timeline-paso.is-current .timeline-titulo { font-weight: 600; color: var(--negro); }
+    .timeline-paso.is-future::before {
+      background: #fff; box-shadow: 0 0 0 1px var(--borde);
+    }
+    .timeline-paso.is-future .timeline-titulo { color: #aaa; font-weight: 400; }
+    .check { color: #2a6b2a; font-weight: 600; }
+    .badge-aqui {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.4px;
+      background: #111; color: #fff; padding: 2px 9px; border-radius: 99px;
+      text-transform: uppercase;
+    }
+
+    .estado-msg {
+      margin-top: 28px;
+      font-size: 0.95rem;
+      color: var(--gris-oscuro);
+      background: var(--gris-claro);
+      border-radius: 4px;
+      padding: 16px 18px;
+      text-align: justify;
+    }
+    .estado-nota {
+      margin-top: 14px; font-size: 0.9rem; color: var(--gris-oscuro);
+    }
+    .actualizado { margin-top: 24px; font-size: 0.8rem; color: var(--gris-medio); }
+    .aviso { font-size: 0.95rem; color: var(--gris-oscuro); padding: 16px; background: var(--gris-claro); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/logo.svg" alt="AL" class="logo" />
+      <div class="nombre">Alonso López</div>
+      <div class="tagline">Estado de tu propiedad</div>
+    </header>
+
+    <div id="contenido" style="display:none">
+      <p class="bloque-intro" id="saludo"></p>
+      <div class="resumen" id="resumen" style="display:none">
+        <div class="titulo" id="resumen-titulo"></div>
+        <div class="sub" id="resumen-sub"></div>
+      </div>
+
+      <h2>En qué va tu proceso</h2>
+      <div class="timeline" id="timeline"></div>
+
+      <div class="estado-msg" id="estado-msg" style="display:none"></div>
+      <div class="estado-nota" id="estado-nota" style="display:none"></div>
+      <div class="actualizado" id="actualizado" style="display:none"></div>
+    </div>
+
+    <div id="mensaje" class="aviso" style="display:none"></div>
+
+    <footer>
+      <p>Alonso López · <a href="mailto:contacto@alonsolopez.cl">contacto@alonsolopez.cl</a></p>
+    </footer>
+  </div>
+
+  <script>
+    var token = new URLSearchParams(location.search).get('t') || '';
+
+    // Orden = línea de tiempo. Las 'key' deben coincidir con las opciones del campo
+    // 'Etapa portal' en Notion (ver comercial/portal/portal_lead.py).
+    var ETAPAS = [
+      { key: 'Recibida',                label: 'Recibimos tu propiedad' },
+      { key: 'Validación',              label: 'Llamada de validación' },
+      { key: 'En evaluación',           label: 'En evaluación por las casas de remate' },
+      { key: 'Propuesta en preparación', label: 'Propuesta en preparación' },
+      { key: 'Propuesta enviada',       label: 'Propuesta enviada' },
+    ];
+
+    var DESCRIPCION = {
+      'Recibida': 'Recibimos los datos de tu propiedad y los estamos revisando.',
+      'Validación': 'Coordinaremos una llamada breve para validar la información antes de avanzar.',
+      'En evaluación': 'Tu propiedad está siendo evaluada por nuestra red de casas de remate. Te avisaremos apenas tengamos novedades.',
+      'Propuesta en preparación': 'Estamos preparando tu propuesta con la mejor alternativa de salida para tu propiedad.',
+      'Propuesta enviada': 'Te enviamos la propuesta. Cualquier duda, escríbenos y la revisamos juntos.',
+    };
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+        return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+      });
+    }
+    function tiene(v) { return v !== null && v !== undefined && v !== ''; }
+
+    function mensaje(txt) {
+      var el = document.getElementById('mensaje');
+      el.textContent = txt;
+      el.style.display = 'block';
+    }
+
+    function indiceEtapa(etapa) {
+      for (var i = 0; i < ETAPAS.length; i++) {
+        if (ETAPAS[i].key === etapa) return i;
+      }
+      return 0; // sin etapa registrada -> asume la primera
+    }
+
+    function pasoHTML(et, estado) {
+      var clase = 'timeline-paso is-' + estado;
+      var extra = '';
+      if (estado === 'done') extra = '<span class="check">✓</span>';
+      else if (estado === 'current') extra = '<span class="badge-aqui">Aquí</span>';
+      return ''
+        + '<div class="' + clase + '">'
+        +   '<div class="timeline-titulo">' + esc(et.label) + ' ' + extra + '</div>'
+        + '</div>';
+    }
+
+    function fecha(iso) {
+      if (!iso) return '';
+      try {
+        return new Date(iso).toLocaleDateString('es-CL', {
+          day: 'numeric', month: 'long', year: 'numeric',
+        });
+      } catch (e) { return ''; }
+    }
+
+    function render(d) {
+      document.getElementById('saludo').textContent =
+        (tiene(d.nombre) ? 'Hola, ' + d.nombre + '.' : 'Hola.')
+        + ' Este es el estado actual de tu propiedad.';
+
+      var sub = [d.tipo, d.comuna, d.region].filter(Boolean).join(' · ');
+      if (tiene(d.direccion) || sub) {
+        document.getElementById('resumen-titulo').textContent =
+          tiene(d.direccion) ? d.direccion : (d.tipo || 'Tu propiedad');
+        document.getElementById('resumen-sub').textContent = sub;
+        document.getElementById('resumen').style.display = 'block';
+      }
+
+      var actual = indiceEtapa(d.etapa);
+      var html = '';
+      for (var i = 0; i < ETAPAS.length; i++) {
+        var estado = i < actual ? 'done' : (i === actual ? 'current' : 'future');
+        html += pasoHTML(ETAPAS[i], estado);
+      }
+      document.getElementById('timeline').innerHTML = html;
+
+      var desc = DESCRIPCION[ETAPAS[actual].key];
+      if (desc) {
+        var el = document.getElementById('estado-msg');
+        el.textContent = desc;
+        el.style.display = 'block';
+      }
+      if (tiene(d.mensaje)) {
+        var nota = document.getElementById('estado-nota');
+        nota.textContent = d.mensaje;
+        nota.style.display = 'block';
+      }
+      if (tiene(d.actualizado)) {
+        var f = fecha(d.actualizado);
+        if (f) {
+          var act = document.getElementById('actualizado');
+          act.textContent = 'Última actualización: ' + f;
+          act.style.display = 'block';
+        }
+      }
+
+      document.getElementById('contenido').style.display = 'block';
+    }
+
+    async function cargar() {
+      if (!token) { mensaje('Link inválido. Pídele a Alonso López tu enlace de acceso.'); return; }
+      try {
+        var res = await fetch('/api/estado?t=' + encodeURIComponent(token));
+        if (res.status === 401) { mensaje('Link inválido o expirado. Pídele a Alonso López tu enlace.'); return; }
+        var data = await res.json();
+        if (!data.ok) { mensaje('No se pudo cargar el estado de tu propiedad. Inténtalo más tarde.'); return; }
+        render(data);
+      } catch (e) {
+        mensaje('No se pudo cargar el estado de tu propiedad. Inténtalo más tarde.');
+      }
+    }
+
+    cargar();
+  </script>
+</body>
+</html>
