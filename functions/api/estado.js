@@ -17,6 +17,9 @@ export async function onRequestGet(context) {
   const lead = leads[0];
 
   // Whitelist: lo único que el propietario puede ver de su propio lead.
+  // Incluye las características físicas (los MISMOS parámetros con los que las casas
+  // evalúan), para que sepa con qué datos se está cotizando. NUNCA teléfono, email,
+  // pretensión de venta ni rol SII.
   const nombreCompleto = val(lead, 'Nombre') || '';
   const data = {
     nombre:      primerNombre(nombreCompleto),
@@ -27,6 +30,26 @@ export async function onRequestGet(context) {
     etapa:       val(lead, 'Etapa portal'),     // puede ser null -> el front asume la 1ª
     mensaje:     val(lead, 'Mensaje portal'),
     actualizado: lead.last_edited_time || null,
+    // Datos de la propiedad (parámetros de la cotización):
+    m2:                    val(lead, 'M²'),
+    m2_construidos:        val(lead, 'M² construidos'),
+    m2_utiles:             val(lead, 'M² útiles'),
+    m2_totales:            val(lead, 'M² totales'),
+    m2_ponderados:         val(lead, 'M² ponderados'),
+    habitaciones:          val(lead, 'Habitaciones'),
+    banos:                 val(lead, 'Baños'),
+    estacionamiento:       val(lead, 'Estacionamiento'),
+    bodega:                val(lead, 'Bodega'),
+    balcon:                val(lead, 'Balcón'),
+    orientacion:           val(lead, 'Orientación'),
+    piso:                  val(lead, 'Piso'),
+    superficie:            val(lead, 'Superficie'),
+    unidad_superficie:     val(lead, 'Unidad superficie'),
+    uso_suelo:             val(lead, 'Uso de suelo'),
+    deuda_hipotecaria:     val(lead, 'Deuda hipotecaria'),
+    moneda_hipotecaria:    val(lead, 'Moneda hipotecaria'),
+    deuda_contribuciones:  val(lead, 'Deuda contribuciones'),
+    moneda_contribuciones: val(lead, 'Moneda contribuciones'),
   };
 
   return json({ ok: true, ...data });

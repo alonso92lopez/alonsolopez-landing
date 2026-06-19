@@ -38,6 +38,19 @@
       text-transform: uppercase;
     }
 
+    .datos-intro { font-size: 0.9rem; color: var(--gris-medio); margin-bottom: 16px; text-align: justify; }
+    .prop-datos {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 20px;
+      background: var(--gris-claro);
+      border-radius: 4px;
+      padding: 16px;
+    }
+    .prop-datos div { font-size: 0.88rem; color: var(--gris-oscuro); }
+    .prop-datos span { color: var(--gris-medio); }
+    @media (max-width: 480px) { .prop-datos { grid-template-columns: 1fr; } }
+
     .estado-msg {
       margin-top: 28px;
       font-size: 0.95rem;
@@ -74,6 +87,13 @@
 
       <div class="estado-msg" id="estado-msg" style="display:none"></div>
       <div class="estado-nota" id="estado-nota" style="display:none"></div>
+
+      <div id="datos-bloque" class="bloque" style="display:none;margin-top:44px;margin-bottom:0">
+        <h2>Datos de tu propiedad</h2>
+        <p class="datos-intro">Estos son los datos con los que las casas de remate están evaluando tu propiedad. Si ves algo que corregir, escríbenos y lo ajustamos.</p>
+        <div class="prop-datos" id="prop-datos"></div>
+      </div>
+
       <div class="actualizado" id="actualizado" style="display:none"></div>
     </div>
 
@@ -111,6 +131,35 @@
       });
     }
     function tiene(v) { return v !== null && v !== undefined && v !== ''; }
+    function linea(label, v) {
+      return tiene(v) ? '<div><span>' + esc(label) + ':</span> ' + esc(v) + '</div>' : '';
+    }
+    function deuda(v, moneda) {
+      if (!tiene(v)) return '';
+      return Number(v) === 0 ? 'Sin deuda' : Number(v).toLocaleString('es-CL') + ' ' + (moneda || '');
+    }
+    function datosHTML(d) {
+      var sup = tiene(d.superficie) ? (d.superficie + ' ' + (d.unidad_superficie || '')) : '';
+      return [
+        linea('Tipo', d.tipo),
+        linea('M² útiles', d.m2_utiles),
+        linea('M² totales', d.m2_totales),
+        linea('M² ponderados', d.m2_ponderados),
+        linea('M² construidos', d.m2_construidos),
+        linea('M²', d.m2),
+        linea('Habitaciones', d.habitaciones),
+        linea('Baños', d.banos),
+        linea('Estacionamiento', d.estacionamiento),
+        linea('Bodega', d.bodega),
+        linea('Balcón', d.balcon),
+        linea('Piso', d.piso),
+        linea('Orientación', d.orientacion),
+        linea('Superficie', sup),
+        linea('Uso de suelo', d.uso_suelo),
+        linea('Deuda hipotecaria', deuda(d.deuda_hipotecaria, d.moneda_hipotecaria)),
+        linea('Deuda contribuciones', deuda(d.deuda_contribuciones, d.moneda_contribuciones)),
+      ].join('');
+    }
 
     function mensaje(txt) {
       var el = document.getElementById('mensaje');
@@ -176,6 +225,12 @@
         var nota = document.getElementById('estado-nota');
         nota.textContent = d.mensaje;
         nota.style.display = 'block';
+      }
+
+      var datos = datosHTML(d);
+      if (datos) {
+        document.getElementById('prop-datos').innerHTML = datos;
+        document.getElementById('datos-bloque').style.display = 'block';
       }
       if (tiene(d.actualizado)) {
         var f = fecha(d.actualizado);
