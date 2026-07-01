@@ -84,6 +84,14 @@
     function linea(label, v) {
       return tiene(v) ? '<div><span>' + esc(label) + ':</span> ' + esc(v) + '</div>' : '';
     }
+    function lineaMaps(label, direccion, comuna, region) {
+      if (!tiene(direccion)) return '';
+      var q = [direccion, comuna, region, 'Chile'].filter(tiene).join(', ');
+      var url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+      return '<div><span>' + esc(label) + ':</span> '
+        + '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">'
+        + esc(direccion) + '</a></div>';
+    }
     function deuda(v, moneda) {
       if (!tiene(v)) return '';
       return Number(v) === 0 ? 'Sin deuda' : Number(v).toLocaleString('es-CL') + ' ' + (moneda || '');
@@ -95,7 +103,7 @@
         linea('Tipo', p.tipo),
         linea('Comuna', p.comuna),
         linea('Región', p.region),
-        linea('Dirección', p.direccion),
+        lineaMaps('Dirección', p.direccion, p.comuna, p.region),
         linea('M² útiles', p.m2_utiles),
         linea('M² totales', p.m2_totales),
         linea('M² ponderados', p.m2_ponderados),

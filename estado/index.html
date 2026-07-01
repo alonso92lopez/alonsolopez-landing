@@ -185,6 +185,14 @@
     function linea(label, v) {
       return tiene(v) ? '<div><span>' + esc(label) + ':</span> ' + esc(v) + '</div>' : '';
     }
+    function lineaMaps(label, direccion, comuna, region) {
+      if (!tiene(direccion)) return '';
+      var q = [direccion, comuna, region, 'Chile'].filter(tiene).join(', ');
+      var url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+      return '<div><span>' + esc(label) + ':</span> '
+        + '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer">'
+        + esc(direccion) + '</a></div>';
+    }
     function deuda(v, moneda) {
       if (!tiene(v)) return '';
       return Number(v) === 0 ? 'Sin deuda' : Number(v).toLocaleString('es-CL') + ' ' + (moneda || '');
@@ -192,7 +200,7 @@
     function datosHTML(d) {
       var sup = tiene(d.superficie) ? (d.superficie + ' ' + (d.unidad_superficie || '')) : '';
       return [
-        linea('Dirección', d.direccion),
+        lineaMaps('Dirección', d.direccion, d.comuna, d.region),
         linea('Comuna', d.comuna),
         linea('Región', d.region),
         linea('Tipo', d.tipo),
