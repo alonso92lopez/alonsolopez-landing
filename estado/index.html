@@ -156,7 +156,7 @@
     // 'Etapa portal' en Notion (ver comercial/portal/portal_lead.py).
     var ETAPAS = [
       { key: 'Recibida',                 corto: 'Recibida',   label: 'Recibimos tu propiedad' },
-      { key: 'Validación',               corto: 'Validación', label: 'Llamada de validación' },
+      { key: 'Validación',               corto: 'Validación', label: 'Datos validados' },
       { key: 'En evaluación',            corto: 'Evaluación', label: 'En evaluación por las casas de remate' },
       { key: 'Propuesta en preparación', corto: 'Propuesta',  label: 'Propuesta en preparación' },
       { key: 'Propuesta enviada',        corto: 'Enviada',    label: 'Propuesta enviada' },
@@ -164,8 +164,8 @@
 
     // Frase del estado ACTUAL (presente).
     var DESCRIPCION = {
-      'Recibida': 'Recibimos los datos de tu propiedad y los estamos revisando.',
-      'Validación': 'Coordinaremos una llamada breve para validar la información antes de avanzar.',
+      'Recibida': 'Recibimos los datos de tu propiedad. Te llamaremos en breve para validarlos contigo antes de avanzar.',
+      'Validación': 'Ya validamos contigo los datos de tu propiedad. La estamos dejando lista para enviarla a evaluación.',
       'En evaluación': 'Tu propiedad está siendo evaluada por nuestra red de casas de remate. Te avisaremos apenas tengamos novedades.',
       'Propuesta en preparación': 'Estamos preparando tu propuesta con la mejor alternativa de salida para tu propiedad.',
       'Propuesta enviada': 'Te enviamos la propuesta. Cualquier duda, escríbenos y la revisamos juntos.',
@@ -173,8 +173,8 @@
 
     // Qué pasa en cada etapa (para "Próximos pasos", mirando hacia adelante).
     var QUE_VIENE = {
-      'Recibida': 'Revisamos los datos de tu propiedad.',
-      'Validación': 'Te llamamos (~20 min) para validar la información y resolver tus dudas.',
+      'Recibida': 'Revisamos los datos y te llamamos (~20 min) para validarlos contigo.',
+      'Validación': 'Dejamos tu propiedad lista para enviarla a evaluación.',
       'En evaluación': 'Las casas de remate de nuestra red evalúan tu propiedad.',
       'Propuesta en preparación': 'Preparamos tu propuesta con la mejor alternativa de salida.',
       'Propuesta enviada': 'Te enviamos la propuesta para revisarla juntos.',
