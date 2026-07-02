@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crear contraseña — Portal de casas de remate</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .card { background: var(--gris-claro); border-radius: 4px; padding: 26px 24px; max-width: 440px; }
+    .card h2 { font-size: 1.05rem; margin-bottom: 6px; }
+    .card p { font-size: 0.9rem; color: var(--gris-oscuro); margin-bottom: 16px; }
+    .card label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+    .card input {
+      width: 100%; padding: 11px 12px; font-size: 0.95rem; font-family: inherit;
+      border: 1px solid var(--borde); border-radius: 4px; margin-bottom: 14px;
+    }
+    .btn-negro {
+      background: #111; color: #fff; border: none; border-radius: 4px;
+      padding: 11px 20px; font-size: 0.92rem; font-family: inherit; font-weight: 600; cursor: pointer;
+    }
+    .btn-negro:disabled { opacity: 0.5; cursor: default; }
+    .error { color: #a33; font-size: 0.88rem; margin-bottom: 12px; display: none; }
+    .listo { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/logo.svg" alt="AL" class="logo" />
+      <div class="nombre">Alonso López</div>
+      <div class="tagline">Portal de casas de remate</div>
+    </header>
+
+    <div class="card">
+      <div id="paso-form">
+        <h2>Crea tu contraseña</h2>
+        <p>Con ella entrarás al portal de propiedades en cotización desde <strong>alonsolopez.cl/casas</strong>.</p>
+        <div class="error" id="error"></div>
+        <form id="form">
+          <label for="p1">Contraseña (mínimo 8 caracteres)</label>
+          <input type="password" id="p1" minlength="8" required autocomplete="new-password" />
+          <label for="p2">Repite la contraseña</label>
+          <input type="password" id="p2" minlength="8" required autocomplete="new-password" />
+          <button type="submit" class="btn-negro" id="btn">Crear contraseña</button>
+        </form>
+      </div>
+      <div class="listo" id="paso-listo">
+        <h2>✓ Contraseña creada</h2>
+        <p id="listo-txt">Tu cuenta quedó activa. Ya puedes entrar al portal.</p>
+        <a href="/casas/" class="btn-negro" style="display:inline-block;text-decoration:none">Ir al portal</a>
+      </div>
+    </div>
+
+    <footer>
+      <p>Alonso López · <a href="mailto:contacto@alonsolopez.cl">contacto@alonsolopez.cl</a></p>
+    </footer>
+  </div>
+
+  <script>
+    var token = new URLSearchParams(location.search).get('t') || '';
+
+    function error(txt) {
+      var el = document.getElementById('error');
+      el.textContent = txt;
+      el.style.display = 'block';
+    }
+
+    document.getElementById('form').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var p1 = document.getElementById('p1').value;
+      var p2 = document.getElementById('p2').value;
+      if (p1 !== p2) { error('Las contraseñas no coinciden.'); return; }
+      if (!token) { error('El enlace no es válido. Pide una invitación nueva.'); return; }
+
+      var btn = document.getElementById('btn');
+      btn.disabled = true;
+      try {
+        var res = await fetch('/api/auth/set-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ t: token, password: p1 }),
+        });
+        var data = await res.json();
+        if (!data.ok) {
+          btn.disabled = false;
+          if (data.error === 'clave-corta') error('La contraseña debe tener al menos 8 caracteres.');
+          else error('El enlace expiró o no es válido. Pide una invitación nueva a Alonso López.');
+          return;
+        }
+        if (data.casa) {
+          document.getElementById('listo-txt').textContent =
+            'La cuenta de ' + data.casa + ' quedó activa. Ya puedes entrar al portal.';
+        }
+        document.getElementById('paso-form').style.display = 'none';
+        document.getElementById('paso-listo').style.display = 'block';
+      } catch (e) {
+        btn.disabled = false;
+        error('No pudimos crear la contraseña. Inténtalo de nuevo.');
+      }
+    });
+  </script>
+</body>
+</html>

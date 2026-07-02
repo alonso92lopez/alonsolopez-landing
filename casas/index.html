@@ -47,6 +47,22 @@
     .aviso { font-size: 0.95rem; color: var(--gris-oscuro); padding: 16px; background: var(--gris-claro); border-radius: 3px; }
     .resultado-opts { display: flex; gap: 20px; flex-wrap: wrap; }
     .montos { flex-direction: column; gap: 16px; }
+    .login-card { background: var(--gris-claro); border-radius: 4px; padding: 26px 24px; max-width: 440px; }
+    .login-card h2 { font-size: 1.05rem; margin-bottom: 6px; }
+    .login-card p { font-size: 0.9rem; color: var(--gris-oscuro); margin-bottom: 16px; }
+    .login-card label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+    .login-card input {
+      width: 100%; padding: 11px 12px; font-size: 0.95rem; font-family: inherit;
+      border: 1px solid var(--borde); border-radius: 4px; margin-bottom: 14px;
+    }
+    .btn-negro {
+      background: #111; color: #fff; border: none; border-radius: 4px;
+      padding: 11px 20px; font-size: 0.92rem; font-family: inherit; font-weight: 600; cursor: pointer;
+    }
+    .btn-negro:disabled { opacity: 0.5; cursor: default; }
+    .login-error { color: #a33; font-size: 0.88rem; margin-bottom: 12px; display: none; }
+    .sesion-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+    .sesion-bar button { background: none; border: none; color: var(--gris-medio); font-size: 0.82rem; cursor: pointer; text-decoration: underline; font-family: inherit; }
     @media (max-width: 480px) { .prop-datos { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -57,6 +73,24 @@
       <div class="nombre">Alonso López</div>
       <div class="tagline">Portal de casas de remate</div>
     </header>
+
+    <div id="vista-login" class="login-card" style="display:none">
+      <h2>Entrar al portal</h2>
+      <p>Ingresa con el email y la contraseña de tu casa de remate.</p>
+      <div class="login-error" id="login-error"></div>
+      <form id="form-login">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" required autocomplete="username" />
+        <label for="login-pass">Contraseña</label>
+        <input type="password" id="login-pass" required autocomplete="current-password" />
+        <button type="submit" class="btn-negro" id="login-btn">Entrar</button>
+      </form>
+      <p style="margin-top:14px;margin-bottom:0">¿Sin cuenta o contraseña olvidada? Escríbenos a <a href="mailto:contacto@alonsolopez.cl">contacto@alonsolopez.cl</a>.</p>
+    </div>
+
+    <div class="sesion-bar" id="sesion-bar" style="display:none">
+      <button id="btn-logout" type="button">Cerrar sesión</button>
+    </div>
 
     <div id="intro" class="bloque" style="display:none">
       <img id="casa-logo" alt="" style="display:none;max-height:52px;margin-bottom:16px;" />
@@ -165,11 +199,12 @@
       var btn = form.querySelector('button');
       btn.disabled = true; btn.textContent = 'Enviando...';
       var d = Object.fromEntries(new FormData(form).entries());
-      d.t = token;
       d.propiedad_id = card.getAttribute('data-id');
       d.codigo = card.getAttribute('data-codigo');
+      var endpoint = '/api/casa/proyeccion';
+      if (token) { d.t = token; endpoint = '/api/proyeccion'; }
       try {
-        var res = await fetch('/api/proyeccion', {
+        var res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(d),
@@ -219,14 +254,30 @@
       });
     }
 
+    function mostrarLogin(textoError) {
+      document.getElementById('vista-login').style.display = 'block';
+      if (textoError) {
+        var el = document.getElementById('login-error');
+        el.textContent = textoError;
+        el.style.display = 'block';
+      }
+    }
+
     async function cargar() {
-      if (!token) { mensaje('Link inválido. Pídele a Alonso López tu enlace de acceso.'); return; }
       try {
-        var res = await fetch('/api/propiedades?t=' + encodeURIComponent(token));
-        if (res.status === 401) { mensaje('Link inválido o expirado. Pídele a Alonso López tu enlace.'); return; }
+        // Con ?t= usa el esquema legacy (links ya repartidos); sin token, sesión.
+        var res = await fetch(token
+          ? '/api/propiedades?t=' + encodeURIComponent(token)
+          : '/api/casa/propiedades');
+        if (res.status === 401 || res.status === 403) {
+          if (token) mensaje('Link inválido o expirado. Pídele a Alonso López tu enlace.');
+          else mostrarLogin();
+          return;
+        }
         var data = await res.json();
         if (!data.ok) { mensaje('No se pudieron cargar las propiedades.'); return; }
 
+        if (!token) document.getElementById('sesion-bar').style.display = 'flex';
         document.getElementById('saludo').textContent = 'Hola, ' + data.casa + '.';
         var LOGOS_CASA = {
           'Macal': '/logo-macal.jpg',
@@ -254,6 +305,39 @@
         mensaje('No se pudieron cargar las propiedades. Inténtalo más tarde.');
       }
     }
+
+    document.getElementById('form-login').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      document.getElementById('login-error').style.display = 'none';
+      try {
+        var res = await fetch('/api/auth/login-casa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('login-email').value,
+            password: document.getElementById('login-pass').value,
+          }),
+        });
+        var data = await res.json();
+        btn.disabled = false;
+        if (!data.ok) {
+          mostrarLogin('Email o contraseña incorrectos.');
+          return;
+        }
+        document.getElementById('vista-login').style.display = 'none';
+        cargar();
+      } catch (e) {
+        btn.disabled = false;
+        mostrarLogin('No pudimos validar tus credenciales. Inténtalo de nuevo.');
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async function () {
+      try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+      location.reload();
+    });
 
     cargar();
   </script>
