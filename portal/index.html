@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal de Remates — Mi portal</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .marca-mini { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; }
+    .marca-mini img { width: 24px; height: 24px; border-radius: 4px; display: block; }
+    .marca-mini .txt { font-size: 0.76rem; color: var(--gris-medio); line-height: 1.3; }
+    .marca-mini .txt strong { color: var(--gris-oscuro); font-weight: 600; }
+    .portal-titulo { font-size: 1.7rem; font-weight: 600; letter-spacing: -0.3px; }
+    .portal-sub { font-size: 0.95rem; color: var(--gris-medio); margin-top: 2px; }
+
+    /* Login */
+    .login-card { background: var(--gris-claro); border-radius: 4px; padding: 26px 24px; max-width: 440px; }
+    .login-card h2 { font-size: 1.05rem; margin-bottom: 6px; }
+    .login-card p { font-size: 0.9rem; color: var(--gris-oscuro); margin-bottom: 16px; }
+    .login-card input[type=email] {
+      width: 100%; padding: 11px 12px; font-size: 0.95rem; font-family: inherit;
+      border: 1px solid var(--borde); border-radius: 4px; margin-bottom: 12px;
+    }
+    .btn-negro {
+      background: #111; color: #fff; border: none; border-radius: 4px;
+      padding: 11px 20px; font-size: 0.92rem; font-family: inherit; font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-negro:disabled { opacity: 0.5; cursor: default; }
+    .btn-borde {
+      background: #fff; color: #111; border: 1px solid var(--borde); border-radius: 4px;
+      padding: 10px 18px; font-size: 0.9rem; font-family: inherit; font-weight: 600; cursor: pointer;
+    }
+    .aviso { font-size: 0.92rem; color: var(--gris-oscuro); padding: 14px 16px; background: var(--gris-claro); border-radius: 4px; margin-bottom: 18px; }
+    .aviso.error { background: #fdf0ef; }
+
+    /* Barra superior de sesión */
+    .sesion-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 8px; }
+    .sesion-bar .quien { font-size: 0.9rem; color: var(--gris-oscuro); }
+    .sesion-bar button { background: none; border: none; color: var(--gris-medio); font-size: 0.82rem; cursor: pointer; text-decoration: underline; font-family: inherit; }
+
+    /* Tarjeta por propiedad */
+    .prop-card { border: 1px solid var(--borde); border-radius: 6px; padding: 22px 22px 18px; margin-bottom: 26px; }
+    .prop-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 2px; }
+    .prop-card .sub { font-size: 0.84rem; color: var(--gris-medio); margin-bottom: 16px; }
+
+    /* Stepper (mismo diseño que /estado) */
+    .stepper { display: flex; margin: 6px 0 14px; }
+    .step { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; }
+    .step:not(:last-child)::after {
+      content: ''; position: absolute; top: 9px; left: 50%;
+      width: 100%; height: 2px; background: var(--borde); z-index: 0;
+    }
+    .step.is-done:not(:last-child)::after { background: var(--negro); }
+    .step .dot {
+      position: relative; z-index: 1; width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; border: 2px solid var(--borde);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; color: #fff; line-height: 1;
+    }
+    .step.is-done .dot { background: var(--negro); border-color: var(--negro); }
+    .step.is-current .dot { background: var(--negro); border-color: var(--negro); box-shadow: 0 0 0 4px rgba(0,0,0,0.10); }
+    .step .lbl { margin-top: 8px; font-size: 0.66rem; color: #bbb; text-align: center; letter-spacing: 0.2px; max-width: 72px; }
+    .step .fch { margin-top: 2px; font-size: 0.6rem; color: #c4c4c4; text-align: center; }
+    .step.is-done .lbl, .step.is-done .fch { color: var(--gris-medio); }
+    .step.is-current .lbl { color: var(--negro); font-weight: 600; }
+    .step.is-current .fch { color: var(--gris-medio); }
+
+    .etapa-actual { background: var(--gris-claro); border-radius: 4px; padding: 14px 16px; margin-bottom: 12px; }
+    .etapa-actual .nom { font-size: 0.98rem; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .etapa-actual .paso-n { font-size: 0.68rem; font-weight: 600; color: #fff; background: #111; padding: 2px 9px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .etapa-actual .desc { font-size: 0.9rem; color: var(--gris-oscuro); }
+    .estado-nota { font-size: 0.88rem; color: var(--gris-oscuro); margin-bottom: 10px; }
+
+    .prop-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; background: var(--gris-claro); border-radius: 4px; padding: 14px 16px; margin-top: 10px; }
+    .prop-datos div { font-size: 0.86rem; color: var(--gris-oscuro); }
+    .prop-datos span { color: var(--gris-medio); }
+    details.datos summary { font-size: 0.88rem; font-weight: 600; cursor: pointer; color: var(--gris-oscuro); margin-top: 4px; }
+
+    /* Propuesta */
+    .propuesta { border: 1.5px solid #111; border-radius: 6px; padding: 18px; margin-top: 16px; }
+    .propuesta .tag { font-size: 0.68rem; font-weight: 600; color: #fff; background: #111; padding: 2px 9px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .propuesta h4 { font-size: 1rem; margin: 10px 0 6px; }
+    .propuesta .cuerpo { font-size: 0.92rem; color: var(--gris-oscuro); white-space: pre-line; margin-bottom: 10px; }
+    .propuesta .fila { font-size: 0.9rem; color: var(--gris-oscuro); }
+    .propuesta .fila span { color: var(--gris-medio); }
+    .propuesta .acciones { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .propuesta .respondida { font-size: 0.92rem; font-weight: 600; margin-top: 12px; }
+    .cierre { background: var(--gris-claro); border-radius: 4px; padding: 14px 16px; font-size: 0.92rem; color: var(--gris-oscuro); }
+
+    @media (max-width: 480px) {
+      .prop-datos { grid-template-columns: 1fr; }
+      .step .lbl { font-size: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="marca-mini">
+        <img src="/logo.svg" alt="AL" />
+        <div class="txt"><strong>Alonso López</strong> · Asesor en alternativas de salida inmobiliaria</div>
+      </div>
+      <div class="portal-titulo">Portal de Remates</div>
+      <div class="portal-sub">Mi portal</div>
+    </header>
+
+    <div id="aviso" class="aviso" style="display:none"></div>
+
+    <!-- Vista: login -->
+    <div id="vista-login" style="display:none">
+      <div class="login-card">
+        <h2>Entrar a mi portal</h2>
+        <p>Escribe el correo con el que registraste tu propiedad y te enviaremos un enlace de acceso. Sin contraseñas.</p>
+        <form id="form-login">
+          <input type="email" id="login-email" placeholder="tu@correo.cl" required autocomplete="email" />
+          <button type="submit" class="btn-negro" id="login-btn">Enviarme el enlace</button>
+        </form>
+        <p id="login-listo" style="display:none;margin-top:14px"><strong>Listo.</strong> Si tu correo está registrado, te llegará un enlace de acceso en un minuto. Revisa también el spam.</p>
+      </div>
+    </div>
+
+    <!-- Vista: dashboard -->
+    <div id="vista-dash" style="display:none">
+      <div class="sesion-bar">
+        <div class="quien" id="quien"></div>
+        <button id="btn-logout" type="button">Cerrar sesión</button>
+      </div>
+      <div id="props"></div>
+    </div>
+
+    <footer>
+      <p>Alonso López · <a href="mailto:contacto@alonsolopez.cl">contacto@alonsolopez.cl</a></p>
+    </footer>
+  </div>
+
+  <script>
+    // Debe coincidir con 'Etapa portal' en Notion (comercial/portal/etapas.py).
+    var ETAPAS = [
+      { key: 'Recibida',                 corto: 'Recibida',   label: 'Recibimos tu propiedad' },
+      { key: 'Validación',               corto: 'Validación', label: 'Llamada de validación' },
+      { key: 'En evaluación',            corto: 'Evaluación', label: 'En evaluación por las casas de remate' },
+      { key: 'Propuesta en preparación', corto: 'Propuesta',  label: 'Propuesta en preparación' },
+      { key: 'Propuesta enviada',        corto: 'Enviada',    label: 'Propuesta enviada' },
+    ];
+    var DESCRIPCION = {
+      'Recibida': 'Recibimos los datos de tu propiedad y los estamos revisando.',
+      'Validación': 'Coordinaremos una llamada breve para validar la información antes de avanzar.',
+      'En evaluación': 'Tu propiedad está siendo evaluada por nuestra red de casas de remate. Te avisaremos apenas tengamos novedades.',
+      'Propuesta en preparación': 'Estamos preparando tu propuesta con la mejor alternativa de salida para tu propiedad.',
+      'Propuesta enviada': 'Tu propuesta está lista más abajo. Revísala y acéptala o recházala cuando quieras.',
+    };
+    var TERMINALES = {
+      'Propuesta aceptada': 'Aceptaste la propuesta. Nos pondremos en contacto contigo para coordinar los siguientes pasos (mandato y fecha de subasta).',
+      'Propuesta rechazada': 'Rechazaste la propuesta. Si cambias de opinión o quieres explorar otra alternativa, escríbenos.',
+      'No continúa': 'Este proceso quedó cerrado. Si quieres retomarlo, escríbenos.',
+    };
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    }
+    function tiene(v) { return v !== null && v !== undefined && v !== ''; }
+    function fecha(iso) {
+      if (!iso) return '';
+      try { return new Date(iso + (iso.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }); }
+      catch (e) { return ''; }
+    }
+    function fechaLarga(iso) {
+      if (!iso) return '';
+      try { return new Date(iso + (iso.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }); }
+      catch (e) { return ''; }
+    }
+    function fmtMonto(v, moneda) {
+      if (!tiene(v)) return '';
+      return Number(v).toLocaleString('es-CL') + ' ' + (moneda || '');
+    }
+    function aviso(txt, esError) {
+      var el = document.getElementById('aviso');
+      el.textContent = txt;
+      el.className = 'aviso' + (esError ? ' error' : '');
+      el.style.display = 'block';
+    }
+
+    function linea(label, v) {
+      return tiene(v) ? '<div><span>' + esc(label) + ':</span> ' + esc(v) + '</div>' : '';
+    }
+    function deuda(v, moneda) {
+      if (!tiene(v)) return '';
+      return Number(v) === 0 ? 'Sin deuda' : Number(v).toLocaleString('es-CL') + ' ' + (moneda || '');
+    }
+    function datosHTML(d) {
+      var sup = tiene(d.superficie) ? (d.superficie + ' ' + (d.unidad_superficie || '')) : '';
+      return [
+        linea('Dirección', d.direccion),
+        linea('Comuna', d.comuna),
+        linea('Región', d.region),
+        linea('Tipo', d.tipo),
+        linea('M² útiles', d.m2_utiles),
+        linea('M² totales', d.m2_totales),
+        linea('M² ponderados', d.m2_ponderados),
+        linea('M² construidos', d.m2_construidos),
+        linea('M²', d.m2),
+        linea('Habitaciones', d.habitaciones),
+        linea('Baños', d.banos),
+        linea('Estacionamiento', d.estacionamiento),
+        linea('Bodega', d.bodega),
+        linea('Balcón', d.balcon),
+        linea('Piso', d.piso),
+        linea('Orientación', d.orientacion),
+        linea('Superficie', sup),
+        linea('Uso de suelo', d.uso_suelo),
+        linea('Deuda hipotecaria', deuda(d.deuda_hipotecaria, d.moneda_hipotecaria)),
+        linea('Deuda contribuciones', deuda(d.deuda_contribuciones, d.moneda_contribuciones)),
+      ].join('');
+    }
+
+    function indiceEtapa(etapa) {
+      for (var i = 0; i < ETAPAS.length; i++) if (ETAPAS[i].key === etapa) return i;
+      return -1;
+    }
+
+    function stepperHTML(actual, fechas, todoListo) {
+      var html = '';
+      for (var i = 0; i < ETAPAS.length; i++) {
+        var estado = (todoListo || i < actual) ? 'is-done' : (i === actual ? 'is-current' : 'is-future');
+        var contenido = (todoListo || i < actual) ? '✓' : '';
+        var f = fecha(fechas[ETAPAS[i].key]);
+        html += ''
+          + '<div class="step ' + estado + '">'
+          +   '<div class="dot">' + contenido + '</div>'
+          +   '<div class="lbl">' + esc(ETAPAS[i].corto) + '</div>'
+          +   (f ? '<div class="fch">' + esc(f) + '</div>' : '')
+          + '</div>';
+      }
+      return html;
+    }
+
+    function propuestaHTML(p, puedeResponder) {
+      var html = '<div class="propuesta" data-propuesta="' + esc(p.id) + '">'
+        + '<span class="tag">Propuesta comercial</span>'
+        + '<h4>Nuestra propuesta para tu propiedad</h4>';
+      if (tiene(p.resumen)) html += '<div class="cuerpo">' + esc(p.resumen) + '</div>';
+      html += [
+        tiene(p.monto) ? '<div class="fila"><span>Monto ofrecido:</span> ' + esc(fmtMonto(p.monto, p.moneda)) + '</div>' : '',
+        tiene(p.comision) ? '<div class="fila"><span>Comisión:</span> ' + esc(p.comision) + '%</div>' : '',
+        tiene(p.plazo) ? '<div class="fila"><span>Plazo estimado:</span> ' + esc(p.plazo) + '</div>' : '',
+        tiene(p.vigencia) ? '<div class="fila"><span>Vigente hasta:</span> ' + esc(fechaLarga(p.vigencia)) + '</div>' : '',
+      ].join('');
+      if (tiene(p.condiciones)) html += '<div class="cuerpo" style="margin-top:10px">' + esc(p.condiciones) + '</div>';
+
+      if (puedeResponder) {
+        html += '<div class="acciones">'
+          + '<button type="button" class="btn-negro" data-accion="aceptar">Aceptar propuesta</button>'
+          + '<button type="button" class="btn-borde" data-accion="rechazar">Rechazar</button>'
+          + '</div>';
+      } else if (p.estado === 'Aceptada') {
+        html += '<div class="respondida">✓ Aceptaste esta propuesta' + (p.fechaRespuesta ? ' el ' + esc(fechaLarga(p.fechaRespuesta)) : '') + '.</div>';
+      } else if (p.estado === 'Rechazada') {
+        html += '<div class="respondida">Rechazaste esta propuesta' + (p.fechaRespuesta ? ' el ' + esc(fechaLarga(p.fechaRespuesta)) : '') + '.</div>';
+      }
+      return html + '</div>';
+    }
+
+    function cardHTML(prop) {
+      var etapa = prop.etapa || 'Recibida';
+      var terminal = TERMINALES[etapa];
+      var idx = indiceEtapa(etapa);
+      if (idx < 0) idx = 0;
+      var titulo = [prop.tipo, prop.comuna].filter(tiene).join(' en ') || 'Tu propiedad';
+      var html = '<div class="prop-card" data-id="' + esc(prop.id) + '">'
+        + '<h3>' + esc(titulo) + '</h3>'
+        + '<div class="sub">' + esc(prop.direccion || '') + (prop.creada ? ' · ingresada el ' + esc(fechaLarga(prop.creada)) : '') + '</div>';
+
+      html += '<div class="stepper">' + stepperHTML(idx, prop.fechasEtapas || {}, !!terminal && etapa === 'Propuesta aceptada') + '</div>';
+
+      if (terminal) {
+        html += '<div class="cierre">' + esc(terminal) + '</div>';
+      } else {
+        html += '<div class="etapa-actual">'
+          + '<div class="nom"><span class="paso-n">Paso ' + (idx + 1) + ' de ' + ETAPAS.length + '</span><span>' + esc(ETAPAS[idx].label) + '</span></div>'
+          + '<div class="desc">' + esc(DESCRIPCION[etapa] || '') + '</div>'
+          + '</div>';
+      }
+      if (tiene(prop.mensaje)) html += '<div class="estado-nota">' + esc(prop.mensaje) + '</div>';
+
+      if (prop.propuesta) html += propuestaHTML(prop.propuesta, prop.puedeResponder);
+
+      var datos = datosHTML(prop);
+      if (datos) {
+        html += '<details class="datos"><summary>Datos de tu propiedad</summary>'
+          + '<div class="prop-datos">' + datos + '</div></details>';
+      }
+      return html + '</div>';
+    }
+
+    function render(data) {
+      document.getElementById('quien').textContent = 'Sesión: ' + (data.email || '');
+      var cont = document.getElementById('props');
+      if (!data.propiedades.length) {
+        cont.innerHTML = '<div class="aviso">Aún no tienes propiedades registradas con este correo.</div>';
+      } else {
+        cont.innerHTML = data.propiedades.map(cardHTML).join('');
+      }
+      document.getElementById('vista-dash').style.display = 'block';
+      document.getElementById('vista-login').style.display = 'none';
+    }
+
+    async function responderPropuesta(card, propuestaId, accion) {
+      var motivo = null;
+      if (accion === 'rechazar') {
+        motivo = prompt('¿Nos cuentas brevemente por qué? (opcional)') || '';
+      } else if (!confirm('¿Confirmas que aceptas la propuesta?')) {
+        return;
+      }
+      try {
+        var res = await fetch('/api/portal/propuesta/responder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ propuesta_id: propuestaId, accion: accion, motivo: motivo }),
+        });
+        var data = await res.json();
+        if (!data.ok) {
+          aviso('No pudimos registrar tu respuesta. Intenta de nuevo o escríbenos.', true);
+          return;
+        }
+        cargar();
+      } catch (e) {
+        aviso('No pudimos registrar tu respuesta. Intenta de nuevo o escríbenos.', true);
+      }
+    }
+
+    async function cargar() {
+      try {
+        var res = await fetch('/api/portal/mis-propiedades');
+        if (res.status === 401) {
+          document.getElementById('vista-login').style.display = 'block';
+          return;
+        }
+        var data = await res.json();
+        if (!data.ok) { aviso('No se pudo cargar tu portal. Inténtalo más tarde.', true); return; }
+        render(data);
+      } catch (e) {
+        aviso('No se pudo cargar tu portal. Inténtalo más tarde.', true);
+      }
+    }
+
+    document.getElementById('form-login').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      try {
+        await fetch('/api/auth/magic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: document.getElementById('login-email').value }),
+        });
+      } catch (e) { /* misma respuesta para el usuario */ }
+      document.getElementById('login-listo').style.display = 'block';
+      btn.disabled = false;
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async function () {
+      try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+      location.reload();
+    });
+
+    document.getElementById('props').addEventListener('click', function (ev) {
+      var btn = ev.target.closest('button[data-accion]');
+      if (!btn) return;
+      var caja = btn.closest('[data-propuesta]');
+      responderPropuesta(caja, caja.getAttribute('data-propuesta'), btn.getAttribute('data-accion'));
+    });
+
+    if (new URLSearchParams(location.search).get('e') === 'link') {
+      aviso('Tu enlace de acceso expiró o no es válido. Pide uno nuevo con tu correo.', true);
+      history.replaceState(null, '', '/portal/');
+    }
+    cargar();
+  </script>
+</body>
+</html>
