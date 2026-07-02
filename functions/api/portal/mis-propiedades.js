@@ -8,7 +8,9 @@
 import { json } from '../../_lib/http.js';
 import { notionQuery, val } from '../../_lib/notion.js';
 import { leadWhitelist } from '../estado.js';
-import { ETAPAS_PROCESO } from '../../_lib/etapas.js';
+
+// Debe coincidir con EDITABLES en propiedad/[id].js (guardia del lado servidor).
+const ETAPAS_EDITABLES = ['Recibida', 'Validación'];
 
 export async function onRequestGet(context) {
   const { env, data } = context;
@@ -32,7 +34,7 @@ export async function onRequestGet(context) {
       creada: lead.created_time || null,
       fechasEtapas: parseFechas(val(lead, 'Fechas etapas')),
       propuesta,
-      puedeEditar: ETAPAS_PROCESO.indexOf(etapa) <= ETAPAS_PROCESO.indexOf('Validación'),
+      puedeEditar: ETAPAS_EDITABLES.includes(etapa),
       puedeResponder: !!propuesta && propuesta.estado === 'Enviada',
     };
   });

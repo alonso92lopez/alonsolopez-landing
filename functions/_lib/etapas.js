@@ -34,7 +34,9 @@ export async function cambiarEtapa(env, { leadId, etapa, actor = 'Alonso', detal
   const lead = await notionGetPage(env, leadId);
   if (!lead) return { ok: false, status: 404, error: 'lead', mensaje: 'Lead no encontrado' };
 
-  const etapaActual = val(lead, 'Etapa portal') || 'Recibida';
+  // Ojo: null (lead recién creado) NO es 'Recibida' — el primer cambio a
+  // 'Recibida' debe registrarse (fecha + Historial), no tratarse como noop.
+  const etapaActual = val(lead, 'Etapa portal');
   if (etapa === etapaActual) {
     return { ok: true, noop: true, etapaAnterior: etapaActual };
   }

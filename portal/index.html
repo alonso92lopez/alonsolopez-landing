@@ -131,6 +131,20 @@
         <div class="quien" id="quien"></div>
         <button id="btn-logout" type="button">Cerrar sesión</button>
       </div>
+      <div style="margin-bottom:20px">
+        <button type="button" class="btn-borde" id="btn-nueva">＋ Ingresar otra propiedad</button>
+      </div>
+      <div id="vista-form" class="prop-card" style="display:none">
+        <h3 id="form-titulo">Nueva propiedad</h3>
+        <div class="sub" id="form-sub">Cuéntanos de tu propiedad; te llamaremos para validar los datos antes de avanzar.</div>
+        <form class="form-propiedad" id="form-prop">
+          <div id="prop-form-slot"></div>
+          <div style="display:flex;gap:10px;margin-top:6px">
+            <button type="submit" class="btn-negro" id="form-guardar">Guardar</button>
+            <button type="button" class="btn-borde" id="form-cancelar">Cancelar</button>
+          </div>
+        </form>
+      </div>
       <div id="props"></div>
     </div>
 
@@ -139,6 +153,7 @@
     </footer>
   </div>
 
+  <script src="/assets/prop-form.js"></script>
   <script>
     // Debe coincidir con 'Etapa portal' en Notion (comercial/portal/etapas.py).
     var ETAPAS = [
@@ -295,22 +310,90 @@
       var datos = datosHTML(prop);
       if (datos) {
         html += '<details class="datos"><summary>Datos de tu propiedad</summary>'
-          + '<div class="prop-datos">' + datos + '</div></details>';
+          + '<div class="prop-datos">' + datos + '</div>'
+          + (prop.puedeEditar
+            ? '<div style="margin-top:12px"><button type="button" class="btn-borde" data-editar="' + esc(prop.id) + '">Corregir datos</button></div>'
+            : '')
+          + '</details>';
       }
       return html + '</div>';
     }
 
+    var propsPorId = {};
+
     function render(data) {
       document.getElementById('quien').textContent = 'Sesión: ' + (data.email || '');
+      propsPorId = {};
+      data.propiedades.forEach(function (p) { propsPorId[p.id] = p; });
       var cont = document.getElementById('props');
       if (!data.propiedades.length) {
-        cont.innerHTML = '<div class="aviso">Aún no tienes propiedades registradas con este correo.</div>';
+        cont.innerHTML = '<div class="aviso">Aún no tienes propiedades registradas con este correo. Ingresa la primera con el botón de arriba.</div>';
       } else {
         cont.innerHTML = data.propiedades.map(cardHTML).join('');
       }
       document.getElementById('vista-dash').style.display = 'block';
       document.getElementById('vista-login').style.display = 'none';
     }
+
+    // --- Alta y edición con el form compartido (assets/prop-form.js) ---
+    var formCtrl = null;
+    var editandoId = null;
+
+    function abrirForm(prop) {
+      editandoId = prop ? prop.id : null;
+      var slot = document.getElementById('prop-form-slot');
+      // Alta pide pretensión de venta; en edición solo se corrigen los datos.
+      slot.innerHTML = PropForm.html({ pretension: !prop });
+      formCtrl = PropForm.init(document.getElementById('form-prop'));
+      document.getElementById('form-titulo').textContent = prop ? 'Corregir datos' : 'Nueva propiedad';
+      document.getElementById('form-sub').textContent = prop
+        ? 'Corrige lo que necesites; usaremos estos datos para la evaluación.'
+        : 'Cuéntanos de tu propiedad; te llamaremos para validar los datos antes de avanzar.';
+      if (prop) PropForm.rellenar(document.getElementById('form-prop'), prop, formCtrl);
+      document.getElementById('vista-form').style.display = 'block';
+      document.getElementById('vista-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cerrarForm() {
+      editandoId = null;
+      document.getElementById('vista-form').style.display = 'none';
+      document.getElementById('prop-form-slot').innerHTML = '';
+    }
+
+    document.getElementById('btn-nueva').addEventListener('click', function () { abrirForm(null); });
+    document.getElementById('form-cancelar').addEventListener('click', cerrarForm);
+
+    document.getElementById('form-prop').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var btn = document.getElementById('form-guardar');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      var data = PropForm.leer(this);
+      try {
+        var res = await fetch(editandoId ? '/api/portal/propiedad/' + editandoId : '/api/portal/propiedad', {
+          method: editandoId ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        var r = await res.json();
+        btn.disabled = false; btn.textContent = 'Guardar';
+        if (res.status === 409) {
+          aviso('Esta propiedad ya está en evaluación y sus datos no se pueden modificar. Si necesitas corregir algo, escríbenos.', true);
+          cerrarForm();
+          return;
+        }
+        if (!r.ok) {
+          aviso('No pudimos guardar. Revisa los datos e inténtalo de nuevo.', true);
+          return;
+        }
+        var eraEdicion = !!editandoId;
+        cerrarForm();
+        aviso(eraEdicion ? 'Datos actualizados.' : 'Propiedad ingresada. Te llamaremos para validar los datos.');
+        cargar();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Guardar';
+        aviso('No pudimos guardar. Inténtalo de nuevo.', true);
+      }
+    });
 
     async function responderPropuesta(card, propuestaId, accion) {
       var motivo = null;
@@ -372,6 +455,11 @@
     });
 
     document.getElementById('props').addEventListener('click', function (ev) {
+      var editar = ev.target.closest('button[data-editar]');
+      if (editar) {
+        abrirForm(propsPorId[editar.getAttribute('data-editar')] || null);
+        return;
+      }
       var btn = ev.target.closest('button[data-accion]');
       if (!btn) return;
       var caja = btn.closest('[data-propuesta]');
