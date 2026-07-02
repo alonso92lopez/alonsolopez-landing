@@ -43,7 +43,13 @@
     .chip-ok { background: #e8f3e8; color: #2a6b2a; }
     .chip-warn { background: #fdf3e0; color: #97640e; }
     .chip-etapa { background: #e8eef8; color: #2d4e85; }
-    .lead-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+    .lead-acciones { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .btn-descartar {
+      background: none; border: none; color: var(--gris-medio); font-size: 0.85rem;
+      text-decoration: underline; cursor: pointer; font-family: inherit; padding: 10px 6px;
+      margin-left: auto;
+    }
+    .btn-descartar:disabled { opacity: 0.4; cursor: default; }
     .lead-resultado { font-size: 0.9rem; margin-top: 12px; padding: 12px 14px; border-radius: 3px; display: none; }
     .lead-resultado.ok { background: #e8f3e8; color: #2a6b2a; display: block; }
     .lead-resultado.error { background: #fbe9e9; color: #a33; display: block; }
@@ -136,6 +142,7 @@
         +   '<div class="lead-acciones">'
         +     btnValidar
         +     '<button type="button" class="btn-negro btn-publicar"' + (l.faltan.length ? ' disabled title="Completa la ficha para publicar"' : '') + '>Publicar a casas</button>'
+        +     '<button type="button" class="btn-descartar">No continúa</button>'
         +   '</div>'
         +   '<div class="lead-resultado"></div>'
         + '</div>';
@@ -170,6 +177,27 @@
         resultado(card, 'error', r.mensaje || 'No se pudo cambiar la etapa.');
       } catch (e) {
         btn.disabled = false; btn.textContent = 'Marcar validado';
+        resultado(card, 'error', 'Error de conexión. Inténtalo de nuevo.');
+      }
+    }
+
+    async function noContinua(card) {
+      var nombre = card.getAttribute('data-nombre') || 'este lead';
+      if (!confirm('¿Marcar que ' + nombre + ' no continúa?\n\nSu proceso queda cerrado (no le llega ningún email). Podrás verlo en la sección "Cerrados".')) return;
+      var btn = card.querySelector('.btn-descartar');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      try {
+        var res = await fetch('/api/admin/etapa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lead_id: card.getAttribute('data-id'), etapa: 'No continúa' }),
+        });
+        var r = await res.json();
+        if (r.ok) { cargar(); return; }
+        btn.disabled = false; btn.textContent = 'No continúa';
+        resultado(card, 'error', r.mensaje || 'No se pudo cerrar el lead.');
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'No continúa';
         resultado(card, 'error', 'Error de conexión. Inténtalo de nuevo.');
       }
     }
@@ -221,6 +249,9 @@
       });
       document.querySelectorAll('.btn-publicar').forEach(function(b) {
         b.addEventListener('click', function() { publicar(b.closest('.lead-card')); });
+      });
+      document.querySelectorAll('.btn-descartar').forEach(function(b) {
+        b.addEventListener('click', function() { noContinua(b.closest('.lead-card')); });
       });
     }
 
