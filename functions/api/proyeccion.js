@@ -2,14 +2,25 @@
 // Recibe la proyección de una casa de remate y la guarda en la base Proyecciones de Notion.
 // Valida el token (CASA_TOKENS) y avisa a Alonso por WhatsApp.
 
+import { json, readJson } from '../_lib/http.js';
+import { notionCreatePage, num, hoyISO } from '../_lib/notion.js';
+import { waAlonso } from '../_lib/notify.js';
+import { resolverCasa } from './propiedades.js';
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  let body;
-  try { body = await request.json(); } catch { return json({ ok: false }, 400); }
+  const body = await readJson(request);
+  if (!body) return json({ ok: false }, 400);
 
   const casa = resolverCasa(env, body.t || '');
   if (!casa) return json({ ok: false, error: 'token' }, 401);
+
+  return guardarProyeccion(env, casa, body);
+}
+
+// Guarda la proyección y notifica. Compartido con el portal autenticado de casas.
+export async function guardarProyeccion(env, casa, body) {
   if (!body.propiedad_id) return json({ ok: false, error: 'propiedad' }, 400);
 
   const codigo = body.codigo || 'PROP';
@@ -17,7 +28,7 @@ export async function onRequestPost(context) {
     'Proyección':    { title: [{ text: { content: `${codigo} — ${casa}` } }] },
     'Propiedad':     { relation: [{ id: body.propiedad_id }] },
     'Casa de remate':{ select: { name: casa } },
-    'Fecha':         { date: { start: new Date().toISOString().split('T')[0] } },
+    'Fecha':         { date: { start: hoyISO() } },
   };
   if (body.resultado)   props['Resultado'] = { select: { name: body.resultado } };
   num(props, 'Monto mínimo', body.monto_minimo);
@@ -27,15 +38,8 @@ export async function onRequestPost(context) {
   if (body.moneda_costo) props['Moneda costo'] = { select: { name: body.moneda_costo } };
   if (body.condiciones)  props['Condiciones'] = { rich_text: [{ text: { content: String(body.condiciones) } }] };
 
-  const res = await fetch('https://api.notion.com/v1/pages', {
-    method: 'POST',
-    headers: notionHeaders(env),
-    body: JSON.stringify({ parent: { database_id: env.NOTION_PROYECCIONES_DB_ID }, properties: props }),
-  });
-  if (!res.ok) {
-    console.error('Notion error:', await res.text());
-    return json({ ok: false }, 500);
-  }
+  const creada = await notionCreatePage(env, env.NOTION_PROYECCIONES_DB_ID, props);
+  if (!creada) return json({ ok: false }, 500);
 
   const moneda = body.moneda || '';
   const lineas = [`📊 Nueva proyección — ${casa}`, `${codigo}`];
@@ -49,51 +53,12 @@ export async function onRequestPost(context) {
       lineas.push(`Costo adicional: ${fmt(body.costo_adicional)} ${body.moneda_costo || ''}`);
     }
   }
-  await notifyWhatsApp(env.WA_ALONSO_PHONE, env.WA_ALONSO_KEY, lineas.join('\n'));
+  await waAlonso(env, lineas.join('\n'));
 
   return json({ ok: true });
-}
-
-// --- helpers ---
-
-function resolverCasa(env, token) {
-  if (!token) return null;
-  try {
-    const mapa = JSON.parse(env.CASA_TOKENS || '{}');
-    return mapa[token] || null;
-  } catch {
-    return null;
-  }
-}
-
-function num(props, name, value) {
-  if (value === '' || value === null || value === undefined) return;
-  const n = Number(value);
-  if (!Number.isNaN(n)) props[name] = { number: n };
 }
 
 function fmt(v) {
   if (v === '' || v === null || v === undefined) return '—';
   return Number(v).toLocaleString('es-CL');
-}
-
-async function notifyWhatsApp(phone, apikey, text) {
-  if (!phone || !apikey) return;
-  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&apikey=${apikey}`;
-  try { await fetch(url); } catch { /* no bloquear por la alerta */ }
-}
-
-function notionHeaders(env) {
-  return {
-    'Authorization': `Bearer ${env.NOTION_API_KEY}`,
-    'Notion-Version': '2022-06-28',
-    'Content-Type': 'application/json',
-  };
-}
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
 }

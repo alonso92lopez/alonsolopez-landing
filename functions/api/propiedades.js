@@ -2,17 +2,26 @@
 // Devuelve las propiedades Abiertas (anonimizadas) para que la casa de remate cotice.
 // Valida el token contra CASA_TOKENS y nunca expone el campo interno "Lead origen".
 
+import { json } from '../_lib/http.js';
+import { notionQuery, val } from '../_lib/notion.js';
+
 export async function onRequestGet(context) {
   const { request, env } = context;
   const token = new URL(request.url).searchParams.get('t') || '';
   const casa = resolverCasa(env, token);
   if (!casa) return json({ ok: false, error: 'token' }, 401);
 
+  const propiedades = await listarPropiedadesParaCasa(env, casa);
+  return json({ ok: true, casa, propiedades });
+}
+
+// Lista las propiedades Abiertas anonimizadas, marcando las que esta casa ya cotizó.
+// Compartido con el portal autenticado de casas (misma vista, otra auth).
+export async function listarPropiedadesParaCasa(env, casa) {
   const abiertas = await notionQuery(env, env.NOTION_PROPIEDADES_DB_ID, {
     property: 'Estado', select: { equals: 'Abierta' },
   });
 
-  // Propiedades que esta casa ya cotizó (para marcarlas en la UI)
   const proys = await notionQuery(env, env.NOTION_PROYECCIONES_DB_ID, {
     property: 'Casa de remate', select: { equals: casa },
   });
@@ -21,7 +30,7 @@ export async function onRequestGet(context) {
     for (const r of (p.properties['Propiedad']?.relation || [])) cotizadas.add(r.id);
   }
 
-  const propiedades = abiertas.map((p) => ({
+  return abiertas.map((p) => ({
     id: p.id,
     codigo:               val(p, 'Código'),
     tipo:                 val(p, 'Tipo de propiedad'),
@@ -48,13 +57,9 @@ export async function onRequestGet(context) {
     moneda_contribuciones:val(p, 'Moneda contribuciones'),
     yaCotizada:           cotizadas.has(p.id),
   }));
-
-  return json({ ok: true, casa, propiedades });
 }
 
-// --- helpers (duplicados a propósito por simplicidad de Pages Functions) ---
-
-function resolverCasa(env, token) {
+export function resolverCasa(env, token) {
   if (!token) return null;
   try {
     const mapa = JSON.parse(env.CASA_TOKENS || '{}');
@@ -62,54 +67,4 @@ function resolverCasa(env, token) {
   } catch {
     return null;
   }
-}
-
-async function notionQuery(env, dbId, filter) {
-  const resultados = [];
-  let cursor;
-  do {
-    const body = { page_size: 100, filter };
-    if (cursor) body.start_cursor = cursor;
-    const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
-      method: 'POST',
-      headers: notionHeaders(env),
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      console.error('Notion query error:', await res.text());
-      break;
-    }
-    const data = await res.json();
-    resultados.push(...(data.results || []));
-    cursor = data.has_more ? data.next_cursor : null;
-  } while (cursor);
-  return resultados;
-}
-
-function notionHeaders(env) {
-  return {
-    'Authorization': `Bearer ${env.NOTION_API_KEY}`,
-    'Notion-Version': '2022-06-28',
-    'Content-Type': 'application/json',
-  };
-}
-
-function val(page, name) {
-  const p = page.properties[name];
-  if (!p) return null;
-  switch (p.type) {
-    case 'title':      return p.title.map((x) => x.plain_text).join('');
-    case 'rich_text':  return p.rich_text.map((x) => x.plain_text).join('');
-    case 'number':     return p.number;
-    case 'select':     return p.select ? p.select.name : null;
-    case 'date':       return p.date ? p.date.start : null;
-    default:           return null;
-  }
-}
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
 }

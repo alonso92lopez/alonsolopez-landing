@@ -1,12 +1,12 @@
+import { json, readJson } from './_lib/http.js';
+import { notionCreatePage, rt, hoyISO } from './_lib/notion.js';
+import { waAlonsoYPablo } from './_lib/notify.js';
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  let data;
-  try {
-    data = await request.json();
-  } catch {
-    return json({ ok: false }, 400);
-  }
+  const data = await readJson(request);
+  if (!data) return json({ ok: false }, 400);
 
   const tipoMap = {
     casa: 'Casa', departamento: 'Departamento', oficina: 'Oficina',
@@ -18,7 +18,7 @@ export async function onRequestPost(context) {
 
   props['Nombre'] = { title: [{ text: { content: data.nombre || '' } }] };
   if (data.telefono)           props['Teléfono']             = { phone_number: data.telefono };
-  if (data.email)              props['Email']                = { email: data.email };
+  if (data.email)              props['Email']                = { email: String(data.email).trim().toLowerCase() };
   if (data.tipo)               props['Tipo de propiedad']    = { select: { name: tipoMap[data.tipo] || data.tipo } };
   if (data.direccion)          props['Dirección']            = rt(data.direccion);
   if (data.comuna)             props['Comuna']               = rt(data.comuna);
@@ -55,39 +55,14 @@ export async function onRequestPost(context) {
   props['Asignado']      = { select: { name: 'Por Asignar' } };
   props['Estado']        = { select: { name: 'nuevo' } };
   props['Canal origen']  = { select: { name: 'Formulario web' } };
-  props['Fecha envío']   = { date: { start: new Date().toISOString().split('T')[0] } };
+  props['Fecha envío']   = { date: { start: hoyISO() } };
 
-  const notionRes = await fetch('https://api.notion.com/v1/pages', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.NOTION_API_KEY}`,
-      'Notion-Version': '2022-06-28',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      parent: { database_id: env.NOTION_LEADS_DB_ID },
-      properties: props,
-    }),
-  });
+  const creada = await notionCreatePage(env, env.NOTION_LEADS_DB_ID, props);
+  if (!creada) return json({ ok: false }, 500);
 
-  if (!notionRes.ok) {
-    console.error('Notion error:', await notionRes.text());
-    return json({ ok: false }, 500);
-  }
-
-  const msg = buildAlertMessage(data, tipoMap);
-  await Promise.allSettled([
-    notifyWhatsApp(env.WA_ALONSO_PHONE, env.WA_ALONSO_KEY, msg),
-    notifyWhatsApp(env.WA_PABLO_PHONE,  env.WA_PABLO_KEY,  msg),
-  ]);
+  await waAlonsoYPablo(env, buildAlertMessage(data, tipoMap));
 
   return json({ ok: true });
-}
-
-async function notifyWhatsApp(phone, apikey, text) {
-  if (!phone || !apikey) return;
-  const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&apikey=${apikey}`;
-  await fetch(url);
 }
 
 function buildAlertMessage(data, tipoMap) {
@@ -106,15 +81,4 @@ function buildAlertMessage(data, tipoMap) {
     `Lugar:    ${lugar}`,
     `Precio:   ${precio}`,
   ].join('\n');
-}
-
-function rt(text) {
-  return { rich_text: [{ text: { content: String(text) } }] };
-}
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
 }

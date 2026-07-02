@@ -1,7 +1,10 @@
 // GET /api/estado?t=TOKEN
 // Portal de estado del propietario: devuelve SOLO en qué etapa va su proceso.
 // Busca el lead por su 'Token portal' en la base de Leads y expone una whitelist
-// estricta: nunca montos, proyecciones, casas de remate, deudas ni pretensión.
+// estricta: nunca montos, proyecciones, casas de remate ni pretensión.
+
+import { json } from '../_lib/http.js';
+import { notionQuery, val } from '../_lib/notion.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -14,14 +17,16 @@ export async function onRequestGet(context) {
   });
   if (!leads.length) return json({ ok: false, error: 'token' }, 401);
 
-  const lead = leads[0];
+  return json({ ok: true, ...leadWhitelist(leads[0]) });
+}
 
-  // Whitelist: lo único que el propietario puede ver de su propio lead.
-  // Incluye las características físicas (los MISMOS parámetros con los que las casas
-  // evalúan), para que sepa con qué datos se está cotizando. NUNCA teléfono, email,
-  // pretensión de venta ni rol SII.
+// Whitelist: lo único que el propietario puede ver de su propio lead.
+// Incluye las características físicas (los MISMOS parámetros con los que las casas
+// evalúan), para que sepa con qué datos se está cotizando. NUNCA teléfono, email,
+// pretensión de venta ni rol SII. Compartida con el portal autenticado del lead.
+export function leadWhitelist(lead) {
   const nombreCompleto = val(lead, 'Nombre') || '';
-  const data = {
+  return {
     nombre:      primerNombre(nombreCompleto),
     tipo:        val(lead, 'Tipo de propiedad'),
     comuna:      val(lead, 'Comuna'),
@@ -51,62 +56,8 @@ export async function onRequestGet(context) {
     deuda_contribuciones:  val(lead, 'Deuda contribuciones'),
     moneda_contribuciones: val(lead, 'Moneda contribuciones'),
   };
-
-  return json({ ok: true, ...data });
 }
-
-// --- helpers (duplicados a propósito por simplicidad de Pages Functions) ---
 
 function primerNombre(nombre) {
   return String(nombre || '').trim().split(/\s+/)[0] || '';
-}
-
-async function notionQuery(env, dbId, filter) {
-  const resultados = [];
-  let cursor;
-  do {
-    const body = { page_size: 100, filter };
-    if (cursor) body.start_cursor = cursor;
-    const res = await fetch(`https://api.notion.com/v1/databases/${dbId}/query`, {
-      method: 'POST',
-      headers: notionHeaders(env),
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      console.error('Notion query error:', await res.text());
-      break;
-    }
-    const data = await res.json();
-    resultados.push(...(data.results || []));
-    cursor = data.has_more ? data.next_cursor : null;
-  } while (cursor);
-  return resultados;
-}
-
-function notionHeaders(env) {
-  return {
-    'Authorization': `Bearer ${env.NOTION_API_KEY}`,
-    'Notion-Version': '2022-06-28',
-    'Content-Type': 'application/json',
-  };
-}
-
-function val(page, name) {
-  const p = page.properties[name];
-  if (!p) return null;
-  switch (p.type) {
-    case 'title':      return p.title.map((x) => x.plain_text).join('');
-    case 'rich_text':  return p.rich_text.map((x) => x.plain_text).join('');
-    case 'number':     return p.number;
-    case 'select':     return p.select ? p.select.name : null;
-    case 'date':       return p.date ? p.date.start : null;
-    default:           return null;
-  }
-}
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
 }
