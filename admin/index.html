@@ -89,6 +89,8 @@
       <div id="pendientes"></div>
       <div class="seccion-titulo">En proceso</div>
       <div id="proceso" class="lista-compacta"></div>
+      <div class="seccion-titulo">Casas de remate</div>
+      <div id="casas" class="lista-compacta"></div>
       <details class="cerrados">
         <summary id="cerrados-resumen">Cerrados</summary>
         <div id="cerrados" class="lista-compacta" style="margin-top:10px"></div>
@@ -146,6 +148,29 @@
         +   '</div>'
         +   '<div class="lead-resultado"></div>'
         + '</div>';
+    }
+
+    function casaHTML(c) {
+      var derecha = c.link
+        ? '<a href="' + esc(c.link) + '" target="_blank" rel="noopener">Ver su portal →</a>'
+        : '<span style="color:var(--gris-medio)">con contraseña' + (c.email ? ' · ' + esc(c.email) : '') + '</span>';
+      var estado = c.estado ? ' <span class="chip' + (c.estado === 'Activa' ? ' chip-ok' : '') + '">' + esc(c.estado) + '</span>' : '';
+      return ''
+        + '<div class="fila">'
+        +   '<span>' + esc(c.nombre) + estado + '</span>'
+        +   '<span>' + derecha + '</span>'
+        + '</div>';
+    }
+
+    async function cargarCasas() {
+      try {
+        var res = await fetch('/api/admin/casas');
+        var data = await res.json();
+        if (!data.ok) return;
+        document.getElementById('casas').innerHTML = data.casas.length
+          ? data.casas.map(casaHTML).join('')
+          : '<div class="fila" style="color:var(--gris-medio)">No hay casas configuradas.</div>';
+      } catch (e) { /* sección secundaria: no bloquea el panel */ }
     }
 
     function filaHTML(l) {
@@ -271,6 +296,7 @@
         document.getElementById('panel').style.display = 'block';
         document.getElementById('mensaje').style.display = 'none';
         render(data.leads);
+        cargarCasas();
       } catch (e) {
         mensaje('No se pudieron cargar los leads. Inténtalo más tarde.');
       }
