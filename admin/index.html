@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel — Alonso López</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .login-card { background: var(--gris-claro); border-radius: 4px; padding: 26px 24px; max-width: 440px; }
+    .login-card h2 { font-size: 1.05rem; margin-bottom: 6px; }
+    .login-card p { font-size: 0.9rem; color: var(--gris-oscuro); margin-bottom: 16px; }
+    .login-card label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; }
+    .login-card input {
+      width: 100%; padding: 11px 12px; font-size: 0.95rem; font-family: inherit;
+      border: 1px solid var(--borde); border-radius: 4px; margin-bottom: 14px;
+    }
+    .btn-negro {
+      background: #111; color: #fff; border: none; border-radius: 4px;
+      padding: 11px 20px; font-size: 0.92rem; font-family: inherit; font-weight: 600; cursor: pointer;
+    }
+    .btn-negro:disabled { opacity: 0.4; cursor: default; }
+    .btn-linea {
+      background: none; color: #111; border: 1px solid var(--borde); border-radius: 4px;
+      padding: 10px 18px; font-size: 0.92rem; font-family: inherit; font-weight: 600; cursor: pointer;
+    }
+    .btn-linea:disabled { opacity: 0.4; cursor: default; }
+    .login-error { color: #a33; font-size: 0.88rem; margin-bottom: 12px; display: none; }
+    .sesion-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+    .sesion-bar button { background: none; border: none; color: var(--gris-medio); font-size: 0.82rem; cursor: pointer; text-decoration: underline; font-family: inherit; }
+
+    .seccion-titulo { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gris-medio); margin: 34px 0 14px; }
+    .lead-card { border: 1px solid var(--borde); border-radius: 4px; padding: 20px; margin-bottom: 16px; }
+    .lead-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 2px; }
+    .lead-sub { font-size: 0.85rem; color: var(--gris-medio); margin-bottom: 10px; }
+    .lead-sub a { color: inherit; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .chip { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--gris-claro); color: var(--gris-oscuro); }
+    .chip-ok { background: #e8f3e8; color: #2a6b2a; }
+    .chip-warn { background: #fdf3e0; color: #97640e; }
+    .chip-etapa { background: #e8eef8; color: #2d4e85; }
+    .lead-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+    .lead-resultado { font-size: 0.9rem; margin-top: 12px; padding: 12px 14px; border-radius: 3px; display: none; }
+    .lead-resultado.ok { background: #e8f3e8; color: #2a6b2a; display: block; }
+    .lead-resultado.error { background: #fbe9e9; color: #a33; display: block; }
+    .lista-compacta { border: 1px solid var(--borde); border-radius: 4px; }
+    .lista-compacta .fila { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--borde); font-size: 0.9rem; flex-wrap: wrap; }
+    .lista-compacta .fila:last-child { border-bottom: none; }
+    .aviso { font-size: 0.95rem; color: var(--gris-oscuro); padding: 16px; background: var(--gris-claro); border-radius: 3px; }
+    details.cerrados { margin-top: 24px; }
+    details.cerrados summary { font-size: 0.85rem; color: var(--gris-medio); cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="/logo.svg" alt="AL" class="logo" />
+      <div class="nombre">Alonso López</div>
+      <div class="tagline">Panel de gestión de leads</div>
+    </header>
+
+    <div id="vista-login" class="login-card" style="display:none">
+      <h2>Panel admin</h2>
+      <p>Ingresa tu contraseña de administrador.</p>
+      <div class="login-error" id="login-error"></div>
+      <form id="form-login">
+        <label for="login-pass">Contraseña</label>
+        <input type="password" id="login-pass" required autocomplete="current-password" />
+        <button type="submit" class="btn-negro" id="login-btn">Entrar</button>
+      </form>
+    </div>
+
+    <div class="sesion-bar" id="sesion-bar" style="display:none">
+      <button id="btn-logout" type="button">Cerrar sesión</button>
+    </div>
+
+    <div id="panel" style="display:none">
+      <div class="seccion-titulo">Por validar y publicar</div>
+      <div id="pendientes"></div>
+      <div class="seccion-titulo">En proceso</div>
+      <div id="proceso" class="lista-compacta"></div>
+      <details class="cerrados">
+        <summary id="cerrados-resumen">Cerrados</summary>
+        <div id="cerrados" class="lista-compacta" style="margin-top:10px"></div>
+      </details>
+    </div>
+
+    <div id="mensaje" class="aviso" style="display:none"></div>
+
+    <footer>
+      <p>Alonso López · <a href="mailto:contacto@alonsolopez.cl">contacto@alonsolopez.cl</a></p>
+    </footer>
+  </div>
+
+  <script>
+    var ETAPAS_PENDIENTES = [null, '', 'Recibida', 'Validación'];
+    var ETAPAS_TERMINALES = ['Propuesta aceptada', 'Propuesta rechazada', 'No continúa'];
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) {
+        return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c];
+      });
+    }
+
+    function mensaje(txt) {
+      var el = document.getElementById('mensaje');
+      el.textContent = txt;
+      el.style.display = 'block';
+    }
+
+    function contactoHTML(l) {
+      var partes = [];
+      if (l.telefono) partes.push('<a href="tel:' + esc(l.telefono) + '">' + esc(l.telefono) + '</a>');
+      if (l.email) partes.push(esc(l.email));
+      partes.push(esc([l.comuna, l.tipo].filter(Boolean).join(' · ')));
+      return partes.filter(Boolean).join(' · ');
+    }
+
+    function cardHTML(l) {
+      var fichaChip = l.faltan.length
+        ? '<span class="chip chip-warn">⚠ Faltan: ' + esc(l.faltan.join(', ')) + '</span>'
+        : '<span class="chip chip-ok">✓ Ficha completa</span>';
+      var etapaChip = '<span class="chip chip-etapa">' + esc(l.etapa || 'Recibida') + '</span>';
+      var estadoChip = l.estadoCrm ? '<span class="chip">' + esc(l.estadoCrm) + '</span>' : '';
+      var btnValidar = l.etapa !== 'Validación'
+        ? '<button type="button" class="btn-linea btn-validar">Marcar validado</button>' : '';
+      return ''
+        + '<div class="lead-card" data-id="' + esc(l.id) + '" data-nombre="' + esc(l.nombre || '') + '">'
+        +   '<h3>' + esc(l.nombre || '(sin nombre)') + '</h3>'
+        +   '<div class="lead-sub">' + contactoHTML(l) + '</div>'
+        +   '<div class="chips">' + etapaChip + estadoChip + fichaChip + '</div>'
+        +   '<div class="lead-acciones">'
+        +     btnValidar
+        +     '<button type="button" class="btn-negro btn-publicar"' + (l.faltan.length ? ' disabled title="Completa la ficha para publicar"' : '') + '>Publicar a casas</button>'
+        +   '</div>'
+        +   '<div class="lead-resultado"></div>'
+        + '</div>';
+    }
+
+    function filaHTML(l) {
+      return ''
+        + '<div class="fila">'
+        +   '<span>' + esc(l.nombre || '(sin nombre)') + ' <span style="color:var(--gris-medio)">· ' + esc([l.comuna, l.tipo].filter(Boolean).join(' · ')) + '</span></span>'
+        +   '<span class="chip chip-etapa">' + esc(l.etapa) + '</span>'
+        + '</div>';
+    }
+
+    function resultado(card, clase, txt) {
+      var el = card.querySelector('.lead-resultado');
+      el.className = 'lead-resultado ' + clase;
+      el.textContent = txt;
+    }
+
+    async function marcarValidado(card) {
+      var btn = card.querySelector('.btn-validar');
+      btn.disabled = true; btn.textContent = 'Guardando...';
+      try {
+        var res = await fetch('/api/admin/etapa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lead_id: card.getAttribute('data-id'), etapa: 'Validación' }),
+        });
+        var r = await res.json();
+        if (r.ok) { cargar(); return; }
+        btn.disabled = false; btn.textContent = 'Marcar validado';
+        resultado(card, 'error', r.mensaje || 'No se pudo cambiar la etapa.');
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Marcar validado';
+        resultado(card, 'error', 'Error de conexión. Inténtalo de nuevo.');
+      }
+    }
+
+    async function publicar(card) {
+      var nombre = card.getAttribute('data-nombre') || 'este lead';
+      if (!confirm('¿Publicar la propiedad de ' + nombre + ' a las casas de remate?\n\nSe crea la ficha anónima (la ven todas las casas activas) y el propietario recibe un email de "en evaluación".')) return;
+      var btn = card.querySelector('.btn-publicar');
+      btn.disabled = true; btn.textContent = 'Publicando...';
+      try {
+        var res = await fetch('/api/admin/publicar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lead_id: card.getAttribute('data-id') }),
+        });
+        var r = await res.json();
+        if (r.ok) {
+          resultado(card, 'ok', '✓ Publicada como ' + r.codigo + '. Las casas ya la ven en su portal.'
+            + (r.etapaOk ? '' : ' (OJO: la etapa no se pudo mover, reintenta desde la terminal.)'));
+          setTimeout(cargar, 2500);
+          return;
+        }
+        btn.disabled = false; btn.textContent = 'Publicar a casas';
+        resultado(card, 'error', r.mensaje || 'No se pudo publicar.');
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Publicar a casas';
+        resultado(card, 'error', 'Error de conexión. Inténtalo de nuevo.');
+      }
+    }
+
+    function render(leads) {
+      var pendientes = leads.filter(function(l) { return ETAPAS_PENDIENTES.indexOf(l.etapa) !== -1; });
+      var proceso = leads.filter(function(l) {
+        return ETAPAS_PENDIENTES.indexOf(l.etapa) === -1 && ETAPAS_TERMINALES.indexOf(l.etapa) === -1;
+      });
+      var cerrados = leads.filter(function(l) { return ETAPAS_TERMINALES.indexOf(l.etapa) !== -1; });
+
+      document.getElementById('pendientes').innerHTML = pendientes.length
+        ? pendientes.map(cardHTML).join('')
+        : '<div class="aviso">No hay leads pendientes de validar o publicar.</div>';
+      document.getElementById('proceso').innerHTML = proceso.length
+        ? proceso.map(filaHTML).join('')
+        : '<div class="fila" style="color:var(--gris-medio)">Nada en evaluación ni con propuesta abierta.</div>';
+      document.getElementById('cerrados').innerHTML = cerrados.map(filaHTML).join('');
+      document.getElementById('cerrados-resumen').textContent = 'Cerrados (' + cerrados.length + ')';
+
+      document.querySelectorAll('.btn-validar').forEach(function(b) {
+        b.addEventListener('click', function() { marcarValidado(b.closest('.lead-card')); });
+      });
+      document.querySelectorAll('.btn-publicar').forEach(function(b) {
+        b.addEventListener('click', function() { publicar(b.closest('.lead-card')); });
+      });
+    }
+
+    async function cargar() {
+      try {
+        var res = await fetch('/api/admin/leads');
+        if (res.status === 401) {
+          document.getElementById('panel').style.display = 'none';
+          document.getElementById('sesion-bar').style.display = 'none';
+          document.getElementById('vista-login').style.display = 'block';
+          return;
+        }
+        var data = await res.json();
+        if (!data.ok) { mensaje('No se pudieron cargar los leads.'); return; }
+        document.getElementById('vista-login').style.display = 'none';
+        document.getElementById('sesion-bar').style.display = 'flex';
+        document.getElementById('panel').style.display = 'block';
+        document.getElementById('mensaje').style.display = 'none';
+        render(data.leads);
+      } catch (e) {
+        mensaje('No se pudieron cargar los leads. Inténtalo más tarde.');
+      }
+    }
+
+    document.getElementById('form-login').addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      document.getElementById('login-error').style.display = 'none';
+      try {
+        var res = await fetch('/api/auth/login-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: document.getElementById('login-pass').value }),
+        });
+        var data = await res.json();
+        btn.disabled = false;
+        if (!data.ok) {
+          var el = document.getElementById('login-error');
+          el.textContent = 'Contraseña incorrecta.';
+          el.style.display = 'block';
+          return;
+        }
+        cargar();
+      } catch (e) {
+        btn.disabled = false;
+        var el2 = document.getElementById('login-error');
+        el2.textContent = 'No pudimos validar la contraseña. Inténtalo de nuevo.';
+        el2.style.display = 'block';
+      }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async function () {
+      try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+      location.reload();
+    });
+
+    cargar();
+  </script>
+</body>
+</html>
