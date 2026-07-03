@@ -57,6 +57,10 @@
     .lista-compacta .fila { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--borde); font-size: 0.9rem; flex-wrap: wrap; }
     .lista-compacta .fila:last-child { border-bottom: none; }
     .aviso { font-size: 0.95rem; color: var(--gris-oscuro); padding: 16px; background: var(--gris-claro); border-radius: 3px; }
+    .fila-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .dias { font-size: 0.78rem; color: var(--gris-medio); }
+    .dias-warn { color: #97640e; font-weight: 600; }
+    .foto-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; padding: 7px 12px; border: 1px solid var(--borde); border-radius: 4px; cursor: pointer; background: #fff; color: #111; }
     details.cerrados { margin-top: 24px; }
     details.cerrados summary { font-size: 0.85rem; color: var(--gris-medio); cursor: pointer; }
   </style>
@@ -104,6 +108,7 @@
     </footer>
   </div>
 
+  <script src="/assets/prop-form.js"></script>
   <script>
     var ETAPAS_PENDIENTES = [null, '', 'Recibida', 'Validación'];
     var ETAPAS_TERMINALES = ['Propuesta aceptada', 'Propuesta rechazada', 'No continúa'];
@@ -144,6 +149,7 @@
         +   '<div class="lead-acciones">'
         +     btnValidar
         +     '<button type="button" class="btn-negro btn-publicar"' + (l.faltan.length ? ' disabled title="Completa la ficha para publicar"' : '') + '>Publicar a casas</button>'
+        +     fotoBtnHTML(l)
         +     '<button type="button" class="btn-descartar">No continúa</button>'
         +   '</div>'
         +   '<div class="lead-resultado"></div>'
@@ -173,11 +179,31 @@
       } catch (e) { /* sección secundaria: no bloquea el panel */ }
     }
 
+    // Palanca: hace cuántos días quedó publicada. Se resalta a partir de 5 días.
+    function publicadaHTML(l) {
+      if (l.diasPublicada === null || l.diasPublicada === undefined) return '';
+      var d = l.diasPublicada;
+      var txt = d === 0 ? 'Publicada hoy' : (d === 1 ? 'Publicada hace 1 día' : 'Publicada hace ' + d + ' días');
+      return '<span class="' + (d >= 5 ? 'dias dias-warn' : 'dias') + '">' + txt + '</span>';
+    }
+
+    // Botón para que Alonso suba fotos a nombre del lead (respaldo WhatsApp).
+    function fotoBtnHTML(l) {
+      var n = l.nFotos || 0;
+      return '<label class="foto-btn" title="Subir fotos a nombre del lead (o arrástralas a su ficha en Notion)">'
+        + '📷 ' + (n ? ('Fotos (' + n + ')') : 'Subir fotos')
+        + '<input type="file" accept="image/*" multiple data-fotos-lead="' + esc(l.id) + '" style="display:none" /></label>';
+    }
+
     function filaHTML(l) {
       return ''
-        + '<div class="fila">'
+        + '<div class="fila" data-id="' + esc(l.id) + '" data-nombre="' + esc(l.nombre || '') + '">'
         +   '<span>' + esc(l.nombre || '(sin nombre)') + ' <span style="color:var(--gris-medio)">· ' + esc([l.comuna, l.tipo].filter(Boolean).join(' · ')) + '</span></span>'
-        +   '<span class="chip chip-etapa">' + esc(l.etapa) + '</span>'
+        +   '<span class="fila-meta">'
+        +     publicadaHTML(l)
+        +     '<span class="chip chip-etapa">' + esc(l.etapa) + '</span>'
+        +     fotoBtnHTML(l)
+        +   '</span>'
         + '</div>';
     }
 
@@ -250,6 +276,24 @@
       } catch (e) {
         btn.disabled = false; btn.textContent = 'Publicar a casas';
         resultado(card, 'error', 'Error de conexión. Inténtalo de nuevo.');
+      }
+    }
+
+    async function subirFotosAdmin(leadId, fileList) {
+      mensaje('Subiendo fotos...');
+      try {
+        var fd = new FormData();
+        fd.append('lead_id', leadId);
+        for (var i = 0; i < fileList.length; i++) {
+          var reducida = await PropForm.reducir(fileList[i]);
+          fd.append('fotos', reducida, reducida.name || ('foto-' + (i + 1) + '.jpg'));
+        }
+        var res = await fetch('/api/admin/fotos', { method: 'POST', body: fd });
+        var r = await res.json();
+        if (!r.ok) { mensaje('No se pudieron subir las fotos.'); return; }
+        cargar();
+      } catch (e) {
+        mensaje('Error al subir las fotos. Inténtalo de nuevo.');
       }
     }
 
@@ -333,6 +377,15 @@
     document.getElementById('btn-logout').addEventListener('click', async function () {
       try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
       location.reload();
+    });
+
+    // Subida de fotos por Alonso (delegado; el panel se repinta en cada cargar()).
+    document.getElementById('panel').addEventListener('change', function (ev) {
+      var input = ev.target.closest('input[data-fotos-lead]');
+      if (input && input.files && input.files.length) {
+        subirFotosAdmin(input.getAttribute('data-fotos-lead'), input.files);
+        input.value = '';
+      }
     });
 
     cargar();

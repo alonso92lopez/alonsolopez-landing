@@ -389,5 +389,34 @@ var PropForm = (function () {
     }
   }
 
-  return { html: html, init: init, leer: leer, rellenar: rellenar };
+  // Reduce una imagen en el navegador antes de subirla: máx `maxDim` px por lado,
+  // JPEG de calidad `quality`. Baja el peso a <1MB típico (rápido y esquiva topes
+  // de tamaño). Si el navegador no puede decodificar (p. ej. HEIC), sube el original.
+  function reducir(file, maxDim, quality) {
+    maxDim = maxDim || 1600;
+    quality = quality || 0.8;
+    return new Promise(function (resolve) {
+      if (!file || !/^image\//.test(file.type || '')) { resolve(file); return; }
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        var escala = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var nw = Math.max(1, Math.round(img.width * escala));
+        var nh = Math.max(1, Math.round(img.height * escala));
+        var canvas = document.createElement('canvas');
+        canvas.width = nw; canvas.height = nh;
+        canvas.getContext('2d').drawImage(img, 0, 0, nw, nh);
+        URL.revokeObjectURL(url);
+        canvas.toBlob(function (blob) {
+          if (!blob) { resolve(file); return; }
+          var nombre = (file.name || 'foto').replace(/\.[^.]+$/, '') + '.jpg';
+          resolve(new File([blob], nombre, { type: 'image/jpeg' }));
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
+  return { html: html, init: init, leer: leer, rellenar: rellenar, reducir: reducir };
 })();

@@ -3,7 +3,7 @@
 // Valida el token contra CASA_TOKENS y nunca expone el campo interno "Lead origen".
 
 import { json } from '../_lib/http.js';
-import { notionQuery, val } from '../_lib/notion.js';
+import { notionQuery, notionGetPage, val } from '../_lib/notion.js';
 
 export async function onRequestGet(context) {
   const { request, env } = context;
@@ -30,32 +30,45 @@ export async function listarPropiedadesParaCasa(env, casa) {
     for (const r of (p.properties['Propiedad']?.relation || [])) cotizadas.add(r.id);
   }
 
-  return abiertas.map((p) => ({
-    id: p.id,
-    codigo:               val(p, 'Código'),
-    tipo:                 val(p, 'Tipo de propiedad'),
-    comuna:               val(p, 'Comuna'),
-    region:               val(p, 'Región'),
-    direccion:            val(p, 'Dirección'),
-    m2:                   val(p, 'M²'),
-    m2_construidos:       val(p, 'M² construidos'),
-    m2_utiles:            val(p, 'M² útiles'),
-    m2_totales:           val(p, 'M² totales'),
-    m2_ponderados:        val(p, 'M² ponderados'),
-    habitaciones:         val(p, 'Habitaciones'),
-    banos:                val(p, 'Baños'),
-    estacionamiento:      val(p, 'Estacionamiento'),
-    bodega:               val(p, 'Bodega'),
-    piso:                 val(p, 'Piso'),
-    orientacion:          val(p, 'Orientación'),
-    superficie:           val(p, 'Superficie'),
-    unidad_superficie:    val(p, 'Unidad superficie'),
-    uso_suelo:            val(p, 'Uso de suelo'),
-    deuda_hipotecaria:    val(p, 'Deuda hipotecaria'),
-    moneda_hipotecaria:   val(p, 'Moneda hipotecaria'),
-    deuda_contribuciones: val(p, 'Deuda contribuciones'),
-    moneda_contribuciones:val(p, 'Moneda contribuciones'),
-    yaCotizada:           cotizadas.has(p.id),
+  // Las fotos viven en el lead de origen (fuente única, así aparecen aunque se
+  // suban DESPUÉS de publicar). El servidor las desreferencia vía 'Lead origen';
+  // la casa nunca ve al lead, solo recibe las URLs de las fotos.
+  return Promise.all(abiertas.map(async (p) => {
+    const leadId = val(p, 'Lead origen');
+    let fotos = [];
+    if (leadId) {
+      const lead = await notionGetPage(env, leadId);
+      if (lead) fotos = val(lead, 'Fotos') || [];
+    }
+    return {
+      id: p.id,
+      codigo:               val(p, 'Código'),
+      tipo:                 val(p, 'Tipo de propiedad'),
+      comuna:               val(p, 'Comuna'),
+      region:               val(p, 'Región'),
+      direccion:            val(p, 'Dirección'),
+      m2:                   val(p, 'M²'),
+      m2_construidos:       val(p, 'M² construidos'),
+      m2_utiles:            val(p, 'M² útiles'),
+      m2_totales:           val(p, 'M² totales'),
+      m2_ponderados:        val(p, 'M² ponderados'),
+      habitaciones:         val(p, 'Habitaciones'),
+      banos:                val(p, 'Baños'),
+      estacionamiento:      val(p, 'Estacionamiento'),
+      bodega:               val(p, 'Bodega'),
+      piso:                 val(p, 'Piso'),
+      orientacion:          val(p, 'Orientación'),
+      superficie:           val(p, 'Superficie'),
+      unidad_superficie:    val(p, 'Unidad superficie'),
+      uso_suelo:            val(p, 'Uso de suelo'),
+      deuda_hipotecaria:    val(p, 'Deuda hipotecaria'),
+      moneda_hipotecaria:   val(p, 'Moneda hipotecaria'),
+      deuda_contribuciones: val(p, 'Deuda contribuciones'),
+      moneda_contribuciones:val(p, 'Moneda contribuciones'),
+      fecha_publicacion:    val(p, 'Fecha publicación'),
+      fotos,
+      yaCotizada:           cotizadas.has(p.id),
+    };
   }));
 }
 

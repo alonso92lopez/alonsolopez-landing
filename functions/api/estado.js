@@ -35,6 +35,8 @@ export function leadWhitelist(lead) {
     etapa:       val(lead, 'Etapa portal'),     // puede ser null -> el front asume la 1ª
     mensaje:     val(lead, 'Mensaje portal'),
     actualizado: lead.last_edited_time || null,
+    fotos:       val(lead, 'Fotos') || [],      // URLs de las fotos que subió el propietario
+
     // Datos de la propiedad (parámetros de la cotización):
     m2:                    val(lead, 'M²'),
     m2_construidos:        val(lead, 'M² construidos'),
