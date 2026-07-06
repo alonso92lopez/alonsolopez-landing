@@ -61,6 +61,21 @@ var PropForm = (function () {
       +       '</select>'
       +     '</div>'
       +   '</div>'
+      +   '<div class="form-fila form-fila-2">'
+      +     '<div class="form-campo">'
+      +       '<label for="ocupacion">Estado de ocupación</label>'
+      +       '<select id="ocupacion" name="ocupacion" required>'
+      +         '<option value="" disabled selected>Selecciona</option>'
+      +         '<option value="Desocupada">Desocupada</option>'
+      +         '<option value="Arrendada con contrato">Arrendada con contrato</option>'
+      +         '<option value="Ocupada">Ocupada</option>'
+      +       '</select>'
+      +     '</div>'
+      +     '<div class="form-campo">'
+      +       '<label for="rol_sii">Rol SII (opcional)</label>'
+      +       '<input type="text" id="rol_sii" name="rol_sii" placeholder="123-45" />'
+      +     '</div>'
+      +   '</div>'
 
       // Casa + Departamento
       + '<div class="form-grupo" id="campos-residencial" style="display:none">'
@@ -155,14 +170,6 @@ var PropForm = (function () {
       +   '</div>'
       + '</div>'
 
-      // Solo Parcela
-      + '<div class="form-grupo" id="campos-parcela-extra" style="display:none">'
-      +   '<div class="form-fila form-fila-2">'
-      +     '<div class="form-campo"><label for="rol_sii">Rol SII</label>'
-      +       '<input type="text" id="rol_sii" name="rol_sii" placeholder="123-45" /></div>'
-      +   '</div>'
-      + '</div>'
-
       // Oficina + Local
       + '<div class="form-grupo" id="campos-comercial" style="display:none">'
       +   '<div class="form-fila form-fila-3">'
@@ -247,7 +254,7 @@ var PropForm = (function () {
   }
 
   var gruposTipo = ['campos-residencial', 'campos-depto-extra', 'campos-tierra',
-    'campos-terreno-extra', 'campos-parcela-extra', 'campos-comercial', 'campos-bodega-est'];
+    'campos-terreno-extra', 'campos-comercial', 'campos-bodega-est'];
   // Campos que pueden volverse obligatorios según el tipo (se limpian en cada cambio).
   var dinamicos = ['m2_utiles', 'm2_totales', 'habitaciones', 'banos', 'estacionamiento',
     'bodega', 'superficie', 'uso_suelo', 'm2_com', 'm2_bod'];
@@ -277,7 +284,7 @@ var PropForm = (function () {
       } else if (v === 'terreno') {
         mostrar('campos-tierra'); mostrar('campos-terreno-extra');
       } else if (v === 'parcela') {
-        mostrar('campos-tierra'); mostrar('campos-parcela-extra');
+        mostrar('campos-tierra');
       } else if (v === 'oficina' || v === 'local') {
         mostrar('campos-comercial');
       } else if (v === 'bodega') {
@@ -344,6 +351,8 @@ var PropForm = (function () {
     set(root, 'direccion', p.direccion);
     set(root, 'comuna', p.comuna);
     set(root, 'region', p.region);
+    set(root, 'ocupacion', p.estado_ocupacion);
+    set(root, 'rol_sii', p.rol_sii);
     set(root, 'm2_utiles', p.m2_utiles);
     set(root, 'm2_totales', p.m2_totales);
     set(root, 'habitaciones', p.habitaciones);

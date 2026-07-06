@@ -26,6 +26,7 @@ export function propiedadProps(data) {
   if (data.direccion)          props['Dirección']            = rt(data.direccion);
   if (data.comuna)             props['Comuna']               = rt(data.comuna);
   if (data.region)             props['Región']               = rt(data.region);
+  if (data.ocupacion)          props['Estado de ocupación']  = { select: { name: data.ocupacion } };
   if (data.m2)                 props['M²']                   = { number: Number(data.m2) };
   if (data.m2_construidos)     props['M² construidos']       = { number: Number(data.m2_construidos) };
   if (data.m2_utiles)          props['M² útiles']            = { number: Number(data.m2_utiles) };

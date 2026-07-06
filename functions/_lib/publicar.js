@@ -12,6 +12,7 @@ const CAMPOS_COPIA = {
   'Tipo de propiedad':  'select',
   'Comuna':             'rich_text',
   'Región':             'rich_text',
+  'Estado de ocupación': 'select',
   'M²':                 'number',
   'M² construidos':     'number',
   'M² útiles':          'number',
@@ -39,6 +40,7 @@ const CAMPOS_COPIA = {
 export const REQUERIDOS = [
   'M² útiles', 'M² totales', 'Comuna', 'Región', 'Baños', 'Habitaciones',
   'Estacionamiento', 'Bodega', 'Deuda hipotecaria', 'Dirección',
+  'Estado de ocupación',
 ];
 
 const ESTADO_EN_COTIZACION = '2 - En cotizacion';

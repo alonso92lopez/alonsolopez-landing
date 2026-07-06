@@ -47,6 +47,7 @@ export async function listarPropiedadesParaCasa(env, casa) {
       comuna:               val(p, 'Comuna'),
       region:               val(p, 'Región'),
       direccion:            val(p, 'Dirección'),
+      estado_ocupacion:     val(p, 'Estado de ocupación'),
       m2:                   val(p, 'M²'),
       m2_construidos:       val(p, 'M² construidos'),
       m2_utiles:            val(p, 'M² útiles'),

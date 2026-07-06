@@ -32,6 +32,7 @@ export function leadWhitelist(lead) {
     comuna:      val(lead, 'Comuna'),
     region:      val(lead, 'Región'),
     direccion:   val(lead, 'Dirección'),
+    estado_ocupacion: val(lead, 'Estado de ocupación'),
     etapa:       val(lead, 'Etapa portal'),     // puede ser null -> el front asume la 1ª
     mensaje:     val(lead, 'Mensaje portal'),
     actualizado: lead.last_edited_time || null,
